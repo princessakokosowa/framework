@@ -18,7 +18,7 @@ set_target_properties(${TARGET} PROPERTIES CMAKE_C_STANDARD_REQUIRED True)
 # similarly looking commands in CMake). For futher reference, I did this -
 # `list(APPEND LIBRARIES .)`.
 list(APPEND LIBRARIES DirectX-Headers)
-list(APPEND LIBRARIES DirectXShaderCompiler)
+# list(APPEND LIBRARIES DirectXShaderCompiler)
 
 # Specify sources and include directories for the target.
 list(APPEND SOURCES   main.c)
