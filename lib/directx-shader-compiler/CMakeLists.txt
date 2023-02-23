@@ -48,15 +48,3 @@ list(APPEND INCLUDES ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
 
 add_library(directx-shader-compiler INTERFACE ${SHARED_LIBRARIES})
 target_include_directories(directx-shader-compiler INTERFACE ${INCLUDES})
-
-# add_custom_command(TARGET directx-shader-compiler POST_BUILD
-#     COMMAND if $<CONFIG:Debug> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
-#         "${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY_DIR}"
-#         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-# 
-#     COMMAND if $<CONFIG:Release> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
-#         "${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY_DIR}"
-#         "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-# 
-# 	message(STATUS "[INFO] Copying DirectX Shader Compiler binaries...")
-# )

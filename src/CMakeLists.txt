@@ -24,9 +24,34 @@ list(APPEND LIBRARIES directx-shader-compiler)
 list(APPEND SOURCES   main.c)
 list(APPEND INCLUDES  .)
 
-# Link libraries to the target.
+# Link libraries against the target.
 target_link_libraries(${TARGET} ${LIBRARIES})
 
 # Bind the sources and the include directories to the target.
-target_sources(            ${TARGET} PRIVATE ${SOURCES})
+target_sources(${TARGET} PRIVATE ${SOURCES})
 target_include_directories(${TARGET} PRIVATE ${INCLUDES})
+
+# Find a better way to do this e.g., skip if the files are already there.
+add_custom_command(TARGET ${TARGET} POST_BUILD
+    COMMAND if $<CONFIG:Debug> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
+        "${DIRECTX_12_AGILITY_SDK_SHARED_LIBRARY_DIR}"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+    COMMAND if $<CONFIG:Release> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
+        "${DIRECTX_12_AGILITY_SDK_SHARED_LIBRARY_DIR}"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+	COMMENT "Copying DirectX 12 Agility SDK binaries..."
+)
+
+add_custom_command(TARGET ${TARGET} POST_BUILD
+    COMMAND if $<CONFIG:Debug> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
+        "${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY_DIR}"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+    COMMAND if $<CONFIG:Release> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
+        "${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY_DIR}"
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
+	COMMENT "Copying DirectX Shader Compiler binaries..."
+)
