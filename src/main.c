@@ -44,8 +44,7 @@ int main(void) {
     ID3D12Debug1* debug_controller = NULL;
 
     succeeded = SUCCEEDED(D3D12GetDebugInterface(&IID_ID3D12Debug1, &debug_controller));
-    if (succeeded)
-    {
+    if (succeeded) {
         ID3D12Debug_EnableDebugLayer(debug_controller);
         // debug_controller->EnableDebugLayer();
         // debug_controller->SetEnableGPUBasedValidation(true);
