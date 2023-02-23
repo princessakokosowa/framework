@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.26)
+cmake_minimum_required(VERSION 3.26)
 
 # I mean, I get it that there IS actually a difference between a project and a target,
 # why though, why?
@@ -20,7 +20,14 @@ endforeach(OUTPUT_CONFIG CMAKE_CONFIGURATION_TYPES)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Add all of the libraries.
-add_subdirectory(lib/DirectX-Headers)
+# I was tempted to add Git submodule called DirectX-Headers, which provides correct
+# DirectX 12 headers, but apparently, DirectX 12 Agility SDK already has these and that\
+# is why I rely solely on it.
+add_subdirectory(lib/directx-12-agility-sdk)
+
+# The rant below concerns the situation, where you clone DirectX Shader Compiler and want
+# build it from source, here I simply download the pre-built binaries.
+add_subdirectory(lib/directx-shader-compiler)
 
 # Obviously, Microsoft does not care about providing you with the information that you
 # have to configure targets yourself (apparently, they also assume that you know that

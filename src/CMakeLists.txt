@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.26)
+cmake_minimum_required(VERSION 3.26)
 
 # Standard bullshit that a programmer has to deal with every time they set up a build
 # system, why do I even have to do this?
@@ -17,8 +17,8 @@ set_target_properties(${TARGET} PROPERTIES CMAKE_C_STANDARD_REQUIRED True)
 # do anything like what is shown below, because there is absolutely not symmetry between
 # similarly looking commands in CMake). For futher reference, I did this -
 # `list(APPEND LIBRARIES .)`.
-list(APPEND LIBRARIES DirectX-Headers)
-# list(APPEND LIBRARIES DirectXShaderCompiler)
+list(APPEND LIBRARIES directx-12-agility-sdk)
+list(APPEND LIBRARIES directx-shader-compiler)
 
 # Specify sources and include directories for the target.
 list(APPEND SOURCES   main.c)
