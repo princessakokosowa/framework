@@ -24,10 +24,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # DirectX 12 headers, but apparently, DirectX 12 Agility SDK already has these and that\
 # is why I rely solely on it.
 add_subdirectory(lib/directx-12-agility-sdk)
+add_subdirectory(lib/directx-shader-compiler)
 
 # The rant below concerns the situation, where you clone DirectX Shader Compiler and want
 # build it from source, here I simply download the pre-built binaries.
-add_subdirectory(lib/directx-shader-compiler)
 
 # Obviously, Microsoft does not care about providing you with the information that you
 # have to configure targets yourself (apparently, they also assume that you know that

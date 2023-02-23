@@ -35,11 +35,11 @@ target_include_directories(${TARGET} PRIVATE ${INCLUDES})
 add_custom_command(TARGET ${TARGET} POST_BUILD
     COMMAND if $<CONFIG:Debug> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
         "${DIRECTX_12_AGILITY_SDK_SHARED_LIBRARY_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/D3D12")
 
     COMMAND if $<CONFIG:Release> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
         "${DIRECTX_12_AGILITY_SDK_SHARED_LIBRARY_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/D3D12")
 
 	COMMENT "Copying DirectX 12 Agility SDK binaries..."
 )
