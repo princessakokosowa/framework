@@ -50,6 +50,13 @@ add_library(               directx-shader-compiler INTERFACE ${SHARED_LIBRARIES}
 target_link_libraries(     directx-shader-compiler INTERFACE ${LIBRARIES})
 target_include_directories(directx-shader-compiler INTERFACE ${INCLUDES})
 
+add_library(dxc IMPORTED STATIC)
+set_target_properties(
+	dxc                           PROPERTIES
+	IMPORTED_LOCATION             ${LIBRARIES}
+	INTERFACE_INCLUDE_DIRECTORIES ${INCLUDES}
+)
+
 function(copy_directx_shader_compiler_shared_libraries)
     set(options)
     set(oneValueArgs TARGET)

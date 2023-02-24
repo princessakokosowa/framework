@@ -27,6 +27,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 # DirectX 12 headers, but apparently, DirectX 12 Agility SDK already has these and that\
 # is why I rely solely on it.
 add_subdirectory(lib/directx-12-agility-sdk)
+add_subdirectory(lib/DirectX-Headers)
 add_subdirectory(lib/directx-shader-compiler)
 
 # The rant below concerns the situation, where you clone DirectX Shader Compiler and want

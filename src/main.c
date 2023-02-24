@@ -1,51 +1,57 @@
+#include "foundation.h"
+
+// Exclude rarely-used items from Windows headers.
 #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN	// Exclude rarely-used items from Windows headers.
+    #define WIN32_LEAN_AND_MEAN
 #endif
 
-#include "d3d12.h"       // That is DirectX 12.
-// #include "dxcapi.h"      // This, on the other hand, is DirectX Shader Compiler.
-// #include "d3d12shader.h" // That thing provides shader reflection utility.
+// Direct3D 12 etc.
+#include "d3d12.h"
+// #include "d3d12shader.h"
 
-
-typedef _Bool bool;
-
-#define null  0
-#define true  1
-#define false 0
-
-#include <stdint.h>
-
-typedef char      i8;
-typedef short     i16;
-typedef int       i32;
-typedef long long i64;
-
-typedef unsigned char      u8;
-typedef unsigned short     u16;
-typedef unsigned int       u32;
-typedef unsigned long long u64;
-
-typedef unsigned short f16;
-typedef float          f32;
-typedef double         f64;
-
-typedef size_t    usize;
-typedef ptrdiff_t isize;
-
-#define arraySize(value)                   ((sizeof((value))) / (sizeof((value[0]))))
-#define enumToInt(value)                   ((isize)(value))
-#define cast(Type, value)                  ((Type)(value))
-
-#define staticAssert(expression)           _Static_assert((expression), "Static assert failed!")
-#define dynamicAssert(expression)          (void)(                                \
-    (!!(expression)) ||                                                           \
-    (_wassert(_CRT_WIDE(#expression), _CRT_WIDE(__FILE__), (usize)(__LINE__)), 0) \
-    )
+// DirectX Shader Compiler etc.
+// #include "dxcapi.h"
 
 #include <stdio.h>
 
+typedef enum Flag {
+    FLAG_ENABLE_DEBUG_LAYER        = 1 << 0,
+    FLAG_ENABLE_SHADER_DEBUGGING   = 1 << 1,
+    FLAG_ENABLE_STABLE_POWER_STATE = 1 << 2,
+} Flag;
+
+// typedef struct Flags {
+//     usize value;
+// } Flags;
+
+// That's less annoying.
+typedef usize Flags;
+
 int main(void) {
-    printf("Hello, world!\n");
+    Flags flags = FLAG_ENABLE_DEBUG_LAYER | FLAG_ENABLE_SHADER_DEBUGGING | FLAG_ENABLE_STABLE_POWER_STATE;
+
+    // @TODO
+    // Remove this or incorporate somewhere after I am done with DXC.
+    //     - princessakokosowa, 24th of February 2023
+    //
+    // Enable the debug layer (and maybe a couple more things) provided by Direct3D 12.
+    {
+        bool       succeeded                        = true;
+        bool const should_enable_debug_layer        = cast(bool, (flags & FLAG_ENABLE_DEBUG_LAYER       ) != 0);
+        bool const should_enable_shader_debugging   = cast(bool, (flags & FLAG_ENABLE_SHADER_DEBUGGING  ) != 0);
+        bool const should_enable_stable_power_state = cast(bool, (flags & FLAG_ENABLE_STABLE_POWER_STATE) != 0);
+
+        ID3D12Debug1* debug_controller = null;
+
+        if (should_enable_debug_layer == true) {
+            succeeded = SUCCEEDED(D3D12GetDebugInterface(&IID_ID3D12Debug1, &debug_controller));
+            if (succeeded == true) {
+                ID3D12Debug1_EnableDebugLayer(debug_controller);
+                ID3D12Debug1_SetEnableSynchronizedCommandQueueValidation(debug_controller, true);
+                ID3D12Debug1_Release(&debug_controller);
+            }
+        }
+    }
 
     return 0;
 }

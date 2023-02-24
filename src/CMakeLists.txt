@@ -5,7 +5,8 @@ cmake_minimum_required(VERSION 3.26)
 set(TARGET gpu)
 add_executable(${TARGET})
 
-find_package(DirectX REQUIRED COMPONENTS D3D12 DXGI)
+find_package(Direct3D12 REQUIRED COMPONENTS d3d12)
+find_package(DirectXGI  REQUIRED COMPONENTS dxgi)
 
 # Specify the working directory for the MSVC debugger (and probably any other debugger
 # that runs on Windows, e.g., RemedyBG, which I use on a daily basis).
@@ -20,13 +21,13 @@ set_target_properties(${TARGET} PROPERTIES CMAKE_C_STANDARD_REQUIRED True)
 # similarly looking commands in CMake). I did this - `list(APPEND LIBRARIES .)`.
 list(APPEND LIBRARIES d3d12)
 list(APPEND LIBRARIES dxgi)
-list(APPEND LIBRARIES directx-12-agility-sdk)
-list(APPEND LIBRARIES directx-shader-compiler)
+list(APPEND LIBRARIES d3d12-headers)
+list(APPEND LIBRARIES DirectX-Guids)
+# list(APPEND LIBRARIES dxc)
 
 # Specify sources and include directories for the target.
-list(APPEND SOURCES   main.c)
-list(APPEND INCLUDES  ${DIRECTX_12_AGILITY_SDK_INCLUDE_DIR})
-list(APPEND INCLUDES  ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
+list(APPEND SOURCES  main.c)
+list(APPEND INCLUDES foundation.h)
 
 # Link libraries against the target.
 target_link_libraries(${TARGET} ${LIBRARIES})
