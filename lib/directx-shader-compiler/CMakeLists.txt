@@ -46,16 +46,19 @@ list(APPEND LIBRARIES ${DIRECTX_SHADER_COMPILER_LIBRARY})
 
 list(APPEND INCLUDES ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
 
-add_library(               directx-shader-compiler INTERFACE ${SHARED_LIBRARIES})
-target_link_libraries(     directx-shader-compiler INTERFACE ${LIBRARIES})
-target_include_directories(directx-shader-compiler INTERFACE ${INCLUDES})
-
-add_library(dxc IMPORTED STATIC)
-set_target_properties(
-	dxc                           PROPERTIES
-	IMPORTED_LOCATION             ${LIBRARIES}
-	INTERFACE_INCLUDE_DIRECTORIES ${INCLUDES}
+add_library(dxcompiler SHARED IMPORTED)
+set_target_properties(dxcompiler PROPERTIES
+    IMPORTED_LOCATION ${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY}
+    IMPORTED_IMPLIB   ${DIRECTX_SHADER_COMPILER_LIBRARY}
 )
+target_include_directories(dxcompiler INTERFACE ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
+
+add_library(dxil SHARED IMPORTED)
+set_target_properties(dxil PROPERTIES
+    IMPORTED_LOCATION ${DIRECTX_SHADER_COMPILER_IL_SHARED_LIBRARY}
+    IMPORTED_IMPLIB   ${DIRECTX_SHADER_COMPILER_LIBRARY}
+)
+target_include_directories(dxil INTERFACE ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
 
 function(copy_directx_shader_compiler_shared_libraries)
     set(options)

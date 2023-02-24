@@ -25,7 +25,8 @@ if (WIN32)
 	# The rest, though, has to be searched for and properly handled.
 	list(APPEND LIBRARIES d3d12-headers)
 	list(APPEND LIBRARIES DirectX-Guids)
-	list(APPEND LIBRARIES dxc)
+	list(APPEND LIBRARIES dxcompiler)
+	list(APPEND LIBRARIES dxil)
 
 	copy_directx_12_agility_sdk_shared_libraries(TARGET ${TARGET})
 	copy_directx_shader_compiler_shared_libraries(TARGET ${TARGET})
