@@ -19,15 +19,11 @@ endforeach(OUTPUT_CONFIG CMAKE_CONFIGURATION_TYPES)
 # Fix problems with relative paths.
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# Load CMake files i.e., those responsible for looking for Direct3D 12, etc.
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-
 # Add all of the libraries.
 # I was tempted to add Git submodule called DirectX-Headers, which provides correct
 # DirectX 12 headers, but apparently, DirectX 12 Agility SDK already has these and that\
 # is why I rely solely on it.
 add_subdirectory(lib/directx-12-agility-sdk)
-add_subdirectory(lib/DirectX-Headers)
 add_subdirectory(lib/directx-shader-compiler)
 
 # The rant below concerns the situation, where you clone DirectX Shader Compiler and want
