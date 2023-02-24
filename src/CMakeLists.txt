@@ -15,14 +15,16 @@ set_target_properties(${TARGET} PROPERTIES CMAKE_C_STANDARD_REQUIRED True)
 
 # Specify libraries for the target (and since we are not linking ANYTHING yet, we cannot
 # do anything like what is shown below, because there is absolutely not symmetry between
-# similarly looking commands in CMake). For futher reference, I did this -
-# `list(APPEND LIBRARIES .)`.
+# similarly looking commands in CMake). I did this - `list(APPEND LIBRARIES .)`.
+list(APPEND LIBRARIES d3d12.lib)
+list(APPEND LIBRARIES dxgi.lib)
 list(APPEND LIBRARIES directx-12-agility-sdk)
 list(APPEND LIBRARIES directx-shader-compiler)
 
 # Specify sources and include directories for the target.
 list(APPEND SOURCES   main.c)
-list(APPEND INCLUDES  .)
+list(APPEND INCLUDES  ${DIRECTX_12_AGILITY_SDK_INCLUDE_DIR})
+list(APPEND INCLUDES  ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
 
 # Link libraries against the target.
 target_link_libraries(${TARGET} ${LIBRARIES})
@@ -31,27 +33,5 @@ target_link_libraries(${TARGET} ${LIBRARIES})
 target_sources(${TARGET} PRIVATE ${SOURCES})
 target_include_directories(${TARGET} PRIVATE ${INCLUDES})
 
-# Find a better way to do this e.g., skip if the files are already there.
-add_custom_command(TARGET ${TARGET} POST_BUILD
-    COMMAND if $<CONFIG:Debug> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
-        "${DIRECTX_12_AGILITY_SDK_SHARED_LIBRARY_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/D3D12")
-
-    COMMAND if $<CONFIG:Release> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
-        "${DIRECTX_12_AGILITY_SDK_SHARED_LIBRARY_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/D3D12")
-
-	COMMENT "Copying DirectX 12 Agility SDK binaries..."
-)
-
-add_custom_command(TARGET ${TARGET} POST_BUILD
-    COMMAND if $<CONFIG:Debug> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
-        "${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-
-    COMMAND if $<CONFIG:Release> neq 0 ("${CMAKE_COMMAND}" -E copy_directory
-        "${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
-
-	COMMENT "Copying DirectX Shader Compiler binaries..."
-)
+copy_directx_12_agility_sdk_shared_libraries(TARGET ${TARGET})
+copy_directx_shader_compiler_shared_libraries(TARGET ${TARGET})
