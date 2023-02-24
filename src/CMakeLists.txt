@@ -30,14 +30,15 @@ list(APPEND LIBRARIES dxcompiler)
 
 # Specify sources and include directories for the target.
 list(APPEND SOURCES  main.c)
-list(APPEND INCLUDES foundation.h)
+# list(APPEND INCLUDES os.h)
+# list(APPEND INCLUDES foundation.h)
 
 # Link libraries against the target.
 target_link_libraries(${TARGET} ${LIBRARIES})
 
 # Bind the sources and the include directories to the target.
 target_sources(${TARGET} PRIVATE ${SOURCES})
-target_include_directories(${TARGET} PRIVATE ${INCLUDES})
+# target_include_directories(${TARGET} PRIVATE ${INCLUDES})
 
 copy_directx_12_agility_sdk_shared_libraries(TARGET ${TARGET})
 copy_directx_shader_compiler_shared_libraries(TARGET ${TARGET})
