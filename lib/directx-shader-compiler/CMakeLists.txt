@@ -51,14 +51,14 @@ set_target_properties(dxcompiler PROPERTIES
     IMPORTED_LOCATION ${DIRECTX_SHADER_COMPILER_SHARED_LIBRARY}
     IMPORTED_IMPLIB   ${DIRECTX_SHADER_COMPILER_LIBRARY}
 )
-target_include_directories(dxcompiler INTERFACE ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
+target_include_directories(dxcompiler INTERFACE ${INCLUDES})
 
 add_library(dxil SHARED IMPORTED)
 set_target_properties(dxil PROPERTIES
     IMPORTED_LOCATION ${DIRECTX_SHADER_COMPILER_IL_SHARED_LIBRARY}
     IMPORTED_IMPLIB   ${DIRECTX_SHADER_COMPILER_LIBRARY}
 )
-target_include_directories(dxil INTERFACE ${DIRECTX_SHADER_COMPILER_INCLUDE_DIR})
+target_include_directories(dxil INTERFACE ${INCLUDES})
 
 function(copy_directx_shader_compiler_shared_libraries)
     set(options)
