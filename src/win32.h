@@ -1,9 +1,13 @@
-// Exclude rarely-used items from Windows headers.
+#ifndef INCLUDE_WIN32_H
+#define INCLUDE_WIN32_H
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// Include this pile of garbage.
+/////////////////////////////////////////////////////////////////////////////////////////
 #ifndef WIN32_LEAN_AND_MEAN
     #define WIN32_LEAN_AND_MEAN
-#endif
+#endif // WIN32_LEAN_AND_MEAN
 
-// Include this pile of random garbage.
 #define NOMINMAX
 #include <Windows.h>
 
@@ -18,4 +22,4 @@
 
 #pragma warning(pop)
 
-#undef COBJMACROS
+#endif // INCLUDE_WIN32_H

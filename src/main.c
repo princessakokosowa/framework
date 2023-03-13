@@ -1,7 +1,49 @@
-#include "os.h"
 #include "foundation.h"
+#include "context.h"
+#include "dynamic_array.h"
 
-#include <stdio.h>
+f64 timeStamp(void) {
+    // `counter_start` and `counter_end` are both, eh, counters, which are dependent on
+    // the clock frequency.
+    //
+    // To get the time in seconds, you need to know the start and end stamp counter and
+    // divide it by the clock frequency.
+    //
+    // @TODO
+    // We can have the time returned in e.g. milliseconds or nanoseconds, `frequency`
+    // should be multiplied accordingly, but I haven't decided yet how to do this. Should
+    // it be a separate procedure, or e.g. an if-else block in this procedure and
+    // possibly pass the mode as an argument? I don't know, mate, but it's not really
+    // relevant to me at the moment.
+    //     ~ princessakokosowa, 8th of March 2023
+    isize static counter_start;
+    isize static frequency;
+    if (counter_start == 0) QueryPerformanceCounter(cast(LARGE_INTEGER*, &counter_start));
+    if (frequency     == 0) QueryPerformanceFrequency(cast(LARGE_INTEGER*, &frequency));
+
+    isize counter_end;
+    QueryPerformanceCounter(cast(LARGE_INTEGER*, &counter_end));
+
+    isize const counter_split = counter_end - counter_start;
+    f64   const split         = cast(f64, counter_split) / cast(f64, frequency);
+
+    return split;
+}
+
+// _Pragma("startup contextCreate")
+// _Pragma("exit    contextDestroy")
+
+#ifndef _MSC_VER
+
+void __attribute__ ((constructor)) preload() {
+    contextCreate();
+}
+
+void __attribute__ ((destructor)) tidyUp() {
+    int _ = contextDestroy();
+}
+
+#endif // _MSC_VER
 
 typedef enum Flag {
     FLAG_ENABLE_DEBUG_LAYER        = 1 << 0,
@@ -17,6 +59,12 @@ typedef enum Flag {
 typedef usize Flags;
 
 int main(void) {
+#ifdef _MSC_VER
+
+    contextCreate();
+
+#endif // _MSC_VER
+
     Flags flags = FLAG_ENABLE_DEBUG_LAYER | FLAG_ENABLE_SHADER_DEBUGGING | FLAG_ENABLE_STABLE_POWER_STATE;
 
     // @TODO
@@ -42,5 +90,188 @@ int main(void) {
         }
     }
 
+    printf("Default allocator.\n");
+    {
+        f64 const start = timeStamp();
+
+        isize* ptr = null;
+
+        ptr = context.allocator(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+                                .size_to_be_allocated_or_resized = sizeof(isize) * 128,
+        });
+
+        ptr = context.allocator(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+                                .ptr_to_be_resized_or_freed     = ptr,
+                                .size_to_be_allocated_or_resized = sizeof(isize) * 192,
+        });
+
+        context.allocator(ALLOCATOR_MODE_FREE, &(AllocatorDescription){
+                          .ptr_to_be_resized_or_freed = ptr,
+        });
+
+        f64 const end = timeStamp();
+
+        printf("%.9f\n", end - start);
+    }
+
+    printf("Temporary-storage-based allocator.\n");
+    {
+        f64 const start = timeStamp();
+
+        isize* ptr = null;
+
+        ptr = temporary_storage_allocator(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+                                          .size_to_be_allocated_or_resized = sizeof(isize) * 128,
+        });
+
+        ptr = temporary_storage_allocator(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+                                          .ptr_to_be_resized_or_freed      = ptr,
+                                          .size_to_be_allocated_or_resized = sizeof(isize) * 192,
+        });
+
+        temporary_storage_allocator(ALLOCATOR_MODE_FREE, &(AllocatorDescription){
+                                    .ptr_to_be_resized_or_freed = ptr,
+        });
+
+        temporaryStorageReset();
+
+        f64 const end = timeStamp();
+
+        printf("%.9f\n", end - start);
+    }
+
+    printf("Default allocator (wrapped).\n");
+    {
+        f64 const start = timeStamp();
+
+        isize* ptr = null;
+
+        ptr = alloc(sizeof(isize) * 128);
+        ptr = resize(ptr, sizeof(isize) * 192);
+        free(ptr);
+
+        f64 const end = timeStamp();
+
+        printf("%.9f\n", end - start);
+    }
+
+    printf("Temporary-storage-based allocator (wrapped).\n");
+    {
+        f64 const start = timeStamp();
+
+        contextSetAllocators(temporary_storage_allocator);
+
+        isize* ptr = null;
+
+        ptr = alloc(sizeof(isize) * 128);
+        ptr = resize(ptr, sizeof(isize) * 192);
+        free(ptr);
+
+        f64 const end = timeStamp();
+
+        temporaryStorageReset();
+        contextRemindAllocators();
+
+        printf("%.9f\n", end - start);
+    }
+
+    printf("Default allocator (wrapped), once again to test whether the default allocator has been reminded to `context`.\n");
+    {
+        f64 const start = timeStamp();
+
+        isize* ptr = null;
+
+        ptr = alloc(sizeof(isize) * 128);
+        ptr = resize(ptr, sizeof(isize) * 192);
+        free(ptr);
+
+        f64 const end = timeStamp();
+
+        printf("%.9f\n", end - start);
+    }
+
+    printf("Dynamic array with the default allocator.\n");
+    {
+        f64 const start = timeStamp();
+
+        isize* ptr = null;
+
+        isize const iterations = 8192;
+        isize const count      = 1024;
+        for (isize i = 0; i < iterations; i += 1) {
+            isize* dynamic_array = null;
+
+            for (isize j = 0; j < count; j += 1) {
+                darrAppend(dynamic_array, j * j * i);
+            }
+
+            darrFree(dynamic_array);
+        }
+
+        f64 const end = timeStamp();
+
+        printf("%.9f\n", end - start);
+    }
+
+
+    printf("Dynamic array with the temporary-storage-based allocator.\n");
+    {
+        f64 const start = timeStamp();
+
+        contextSetAllocators(temporary_storage_allocator);
+
+        isize* ptr = null;
+
+        isize const iterations = 8192;
+        isize const count      = 1024;
+        for (isize i = 0; i < iterations; i += 1) {
+            isize* dynamic_array = null;
+
+            for (isize j = 0; j < count; j += 1) {
+                darrAppend(dynamic_array, j * j * i);
+            }
+
+            temporaryStorageReset();
+        }
+
+        contextRemindAllocators();
+
+        f64 const end = timeStamp();
+
+        printf("%.9f\n", end - start);
+    }
+
+    printf("Temporary-storage-based allocator (wrapped), testing resize.\n");
+    {
+        f64 const start = timeStamp();
+
+        contextSetAllocators(temporary_storage_allocator);
+
+        isize* ptr   = null;
+        isize* ptr_2 = null;
+
+        ptr   = alloc(sizeof(isize) * 128);
+        ptr   = resize(ptr, sizeof(isize) * 192);
+        ptr_2 = alloc(sizeof(isize) * 128);
+        ptr   = resize(ptr, sizeof(isize) * 256);
+        free(ptr_2);
+        free(ptr);
+
+        f64 const end = timeStamp();
+
+        temporaryStorageReset();
+        contextRemindAllocators();
+
+        printf("%.9f\n", end - start);
+    }
+
+#ifdef _MSC_VER
+
+    return contextDestroy();
+
+#else
+
     return 0;
+
+#endif // defined(_MSC_VER)
 }
