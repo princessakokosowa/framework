@@ -35,12 +35,12 @@ f64 timeStamp(void) {
 
 #ifndef _MSC_VER
 
-void __attribute__ ((constructor)) preload() {
+void __attribute__ ((constructor)) preload(void) {
     contextCreate();
 }
 
-void __attribute__ ((destructor)) tidyUp() {
-    int _ = contextDestroy();
+void __attribute__ ((destructor)) tidyUp(void) {
+    contextDestroy();
 }
 
 #endif // _MSC_VER
@@ -75,13 +75,13 @@ int main(void) {
     {
         bool       succeeded                        = true;
         bool const should_enable_debug_layer        = cast(bool, (flags & FLAG_ENABLE_DEBUG_LAYER       ) != 0);
-        bool const should_enable_shader_debugging   = cast(bool, (flags & FLAG_ENABLE_SHADER_DEBUGGING  ) != 0);
-        bool const should_enable_stable_power_state = cast(bool, (flags & FLAG_ENABLE_STABLE_POWER_STATE) != 0);
+        // bool const should_enable_shader_debugging   = cast(bool, (flags & FLAG_ENABLE_SHADER_DEBUGGING  ) != 0);
+        // bool const should_enable_stable_power_state = cast(bool, (flags & FLAG_ENABLE_STABLE_POWER_STATE) != 0);
 
         ID3D12Debug1* debug_controller = null;
 
         if (should_enable_debug_layer == true) {
-            succeeded = SUCCEEDED(D3D12GetDebugInterface(&IID_ID3D12Debug1, &debug_controller));
+            succeeded = SUCCEEDED(D3D12GetDebugInterface(&IID_ID3D12Debug1, cast(void**, &debug_controller)));
             if (succeeded == true) {
                 ID3D12Debug1_EnableDebugLayer(debug_controller);
                 ID3D12Debug1_SetEnableSynchronizedCommandQueueValidation(debug_controller, true);
@@ -96,17 +96,17 @@ int main(void) {
 
         isize* ptr = null;
 
-        ptr = context.allocator(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
-                                .size_to_be_allocated_or_resized = sizeof(isize) * 128,
+        ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+            .size_to_be_allocated_or_resized = sizeof(isize) * 128,
         });
 
-        ptr = context.allocator(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
-                                .ptr_to_be_resized_or_freed     = ptr,
-                                .size_to_be_allocated_or_resized = sizeof(isize) * 192,
+        ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+            .ptr_to_be_resized_or_freed     = ptr,
+            .size_to_be_allocated_or_resized = sizeof(isize) * 192,
         });
 
-        context.allocator(ALLOCATOR_MODE_FREE, &(AllocatorDescription){
-                          .ptr_to_be_resized_or_freed = ptr,
+        context.allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription){
+            .ptr_to_be_resized_or_freed = ptr,
         });
 
         f64 const end = timeStamp();
@@ -120,17 +120,17 @@ int main(void) {
 
         isize* ptr = null;
 
-        ptr = temporary_storage_allocator(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
-                                          .size_to_be_allocated_or_resized = sizeof(isize) * 128,
+        ptr = temporary_allocator.procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+            .size_to_be_allocated_or_resized = sizeof(isize) * 128,
         });
 
-        ptr = temporary_storage_allocator(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
-                                          .ptr_to_be_resized_or_freed      = ptr,
-                                          .size_to_be_allocated_or_resized = sizeof(isize) * 192,
+        ptr = temporary_allocator.procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+            .ptr_to_be_resized_or_freed      = ptr,
+            .size_to_be_allocated_or_resized = sizeof(isize) * 192,
         });
 
-        temporary_storage_allocator(ALLOCATOR_MODE_FREE, &(AllocatorDescription){
-                                    .ptr_to_be_resized_or_freed = ptr,
+        temporary_allocator.procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription){
+            .ptr_to_be_resized_or_freed = ptr,
         });
 
         temporaryStorageReset();
@@ -159,7 +159,7 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        contextSetAllocators(temporary_storage_allocator);
+        contextSetAllocators(&temporary_allocator);
 
         isize* ptr = null;
 
@@ -194,8 +194,6 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        isize* ptr = null;
-
         isize const iterations = 8192;
         isize const count      = 1024;
         for (isize i = 0; i < iterations; i += 1) {
@@ -218,9 +216,7 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        contextSetAllocators(temporary_storage_allocator);
-
-        isize* ptr = null;
+        contextSetAllocators(&temporary_allocator);
 
         isize const iterations = 8192;
         isize const count      = 1024;
@@ -245,7 +241,7 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        contextSetAllocators(temporary_storage_allocator);
+        contextSetAllocators(&temporary_allocator);
 
         isize* ptr   = null;
         isize* ptr_2 = null;

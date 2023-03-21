@@ -17,22 +17,11 @@ typedef struct {
 } TemporaryStorage;
 
 TemporaryStorage temporary_storage;
+Allocator        temporary_allocator;
 
-static inline void temporaryStorageCreate() {
-    temporary_storage = (TemporaryStorage) {
-        .ptr = alloc(TEMPORARY_STORAGE_COUNT),
-    };
-}
+void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription* description) {
+    assert(description->ptr_to_heap == null);
 
-static inline void temporaryStorageDestroy() {
-    free(temporary_storage.ptr);
-
-    temporary_storage = (TemporaryStorage) {
-        0,
-    };
-}
-
-static inline void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription* description) {
     if (mode == ALLOCATOR_MODE_ALLOCATE) {
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
@@ -79,11 +68,31 @@ static inline void* temporaryStorageAllocatorProcedure(AllocatorMode mode, Alloc
     _unreachable();
 }
 
-static inline void temporaryStorageReset() {
+void temporaryStorageCreate(void) {
+    temporary_storage = (TemporaryStorage) {
+        .ptr = alloc(TEMPORARY_STORAGE_COUNT),
+    };
+
+    temporary_allocator = (Allocator) {
+        .procedure = &temporaryStorageAllocatorProcedure,
+    };
+}
+
+void temporaryStorageDestroy(void) {
+    temporary_allocator = (Allocator) {
+        0,
+    };
+
+    free(temporary_storage.ptr);
+
+    temporary_storage = (TemporaryStorage) {
+        0,
+    };
+}
+
+void temporaryStorageReset(void) {
     temporary_storage.last     = 0;
     temporary_storage.occupied = 0;
 }
-
-AllocatorProcedure* temporary_storage_allocator = &temporaryStorageAllocatorProcedure;
 
 #endif // INCLUDE_TEMPORARY_STORAGE_H

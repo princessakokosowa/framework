@@ -18,7 +18,8 @@
 #pragma warning(disable:4115) // 4115: Named type definition in parentheses.
 
 #include "d3d12.h"
-#include <dxgi1_6.h>
+#include "d3d12sdklayers.h"
+#include "dxgi1_6.h"
 
 #pragma warning(pop)
 

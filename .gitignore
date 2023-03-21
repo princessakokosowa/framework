@@ -8,5 +8,7 @@
 *.dbg
 *.lib
 *.exp
-build
-build/*
+zig-cache
+zig-cache/*
+zig-out
+zig-out/*

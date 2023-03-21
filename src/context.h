@@ -6,13 +6,15 @@
 #include "temporary_storage.h"
 
 typedef struct {
-    AllocatorProcedure* allocator;
-    AllocatorProcedure* remembered_allocator;
+    Allocator* allocator;
+    Allocator* remembered_allocator;
 } Context;
 
 Context context;
 
-static inline void* defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription* description) {
+void* defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription* description) {
+    assert(description->ptr_to_heap == null);
+
     if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void*,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void*,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_FREE)     return cast(void*, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
@@ -20,30 +22,35 @@ static inline void* defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescr
     _unreachable();
 }
 
-static inline void contextCreate() {
+Allocator default_allocator = (Allocator) {
+    .procedure   = &defaultAllocatorProcedure,
+    .ptr_to_heap = null,
+};
+
+void contextCreate(void) {
     context = (Context) {
-        .allocator = &defaultAllocatorProcedure,
+        .allocator = &default_allocator,
     };
 
     temporaryStorageCreate();
 }
 
-static inline void contextRememberAllocators() {
+void contextRememberAllocators(void) {
     context.remembered_allocator = context.allocator;
 }
 
-static inline void contextSetAllocators(AllocatorProcedure* allocator) {
+void contextSetAllocators(Allocator* allocator) {
     contextRememberAllocators();
 
     context.allocator = allocator;
 }
 
-static inline void contextRemindAllocators() {
+void contextRemindAllocators(void) {
     context.allocator            = context.remembered_allocator;
     context.remembered_allocator = null;
 }
 
-static inline int contextDestroy() {
+int contextDestroy(void) {
     temporaryStorageDestroy();
 
     context = (Context) {
@@ -53,9 +60,10 @@ static inline int contextDestroy() {
     return 0;
 }
 
-static inline void* _alloc(isize type_size_times_count) {
-    void* maybe_ptr = context.allocator(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+void* _alloc(isize type_size_times_count) {
+    void* maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
+        .ptr_to_heap                     = context.allocator->ptr_to_heap,
     });
 
     assert(maybe_ptr != null);
@@ -63,12 +71,13 @@ static inline void* _alloc(isize type_size_times_count) {
     return maybe_ptr;
 }
 
-static inline void* _resize(void* ptr, isize type_size_times_count) {
+void* _resize(void* ptr, isize type_size_times_count) {
     assert(ptr != null);
 
-    void* maybe_ptr = context.allocator(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+    void* maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
         .ptr_to_be_resized_or_freed      = ptr,
         .size_to_be_allocated_or_resized = type_size_times_count,
+        .ptr_to_heap                     = context.allocator->ptr_to_heap,
     });
 
     assert(maybe_ptr != null);
@@ -76,14 +85,17 @@ static inline void* _resize(void* ptr, isize type_size_times_count) {
     return maybe_ptr;
 }
 
-static inline void _free(void* ptr) {
+void _free(void* ptr) {
     assert(ptr != null);
 
-    void* result_but_ptr = context.allocator(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
+    void* result_but_ptr = context.allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
         .ptr_to_be_resized_or_freed = ptr,
+        .ptr_to_heap                = context.allocator->ptr_to_heap,
     });
 
     assert(result_but_ptr != null);
+
+    (void) result_but_ptr;
 }
 
 #endif // INCLUDE_CONTEXT_H

@@ -57,6 +57,10 @@ typedef struct {
     // In case of ALLOCATOR_MODE_RESIZE this argument is the pointer to the buffer that must be reallocated.
     // In case of ALLOCATOR_MODE_FREE this argument is the pointer that needs to be freed.
     void* ptr_to_be_resized_or_freed;
+
+    // @TODO
+    // Write a description for that.
+    void* ptr_to_heap;
 } AllocatorDescription;
 
 // At this point we treat the `AllocatorProcedure` type as an allocator, although an
@@ -70,13 +74,14 @@ typedef struct {
 typedef void* (AllocatorProcedure)(AllocatorMode mode, AllocatorDescription* description);
 
 typedef struct {
-    void*               user_data;
     AllocatorProcedure* procedure;
+    void*               ptr_to_heap;
 } Allocator;
 
-static inline void* _alloc(isize type_size_times_count);
-static inline void* _resize(void* ptr, isize type_size_times_count);
-static inline void  _free(void* ptr);
+void* _alloc(isize type_size_times_count);
+void* _resize(void* ptr, isize type_size_times_count);
+void  _free(void* ptr);
+
 
 #define alloc  _alloc
 #define resize _resize
