@@ -85,6 +85,8 @@ pub fn build(b: *std.build.Builder) !void {
             exe.linkSystemLibraryName("dxgi");
             exe.linkSystemLibraryName("dxguid");
         },
+        // Yes, this means that you cannot compile this code on any operating system
+        // other than Windows. Sorry.
         else => unreachable,
     }
 
