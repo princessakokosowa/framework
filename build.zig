@@ -43,6 +43,9 @@ fn findWindowsKitsAndAddItsLibraryPath(b: *std.build.Builder, exe: *std.Build.Co
         try dirs.append(b.dupe(dir.name));
     }
 
+    // If not found, exit here.
+    if (dirs.getLastOrNull() == null) return error.NoVersionAvailable;
+
     // I am not sure whether we can rely on std library to automatically sort the
     // results for us (they may rely on Windows providing them the already sorted list
     // of directories), so we sort them ourselves.
