@@ -13,7 +13,7 @@ typedef struct {
 #define darrCount(a)    ((a) ? header(a)->count : 0 )
 #define darrCapacity(a) ((a) ? header(a)->capacity : 0)
 
-void* darrGrowProcedure(void* maybe_ptr, isize type_size, isize count, isize minimal_capacity) {
+void* darrGrowProcedure(void *maybe_ptr, isize type_size, isize count, isize minimal_capacity) {
     // Force debugging, a nice trick from stb_ds.h.
     {
         DynamicArray dynamic_array_internals = (DynamicArray){
@@ -46,8 +46,8 @@ void* darrGrowProcedure(void* maybe_ptr, isize type_size, isize count, isize min
 
     isize const size  = type_size * minimal_capacity;
     isize const extra = sizeof(DynamicArray);
-    u8*         ptr   = null;
-    if (maybe_ptr == null) ptr = cast(u8*, alloc(                                size + extra));
+    u8          *ptr  = null;
+    if (maybe_ptr == null) ptr = cast(u8*, alloc(                    size + extra));
     else                   ptr = cast(u8*, resize(header(maybe_ptr), size + extra));
 
     // This is ALWAYS OK!

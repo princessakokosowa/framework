@@ -78,7 +78,7 @@ int main(void) {
         // bool const should_enable_shader_debugging   = cast(bool, (flags & FLAG_ENABLE_SHADER_DEBUGGING  ) != 0);
         // bool const should_enable_stable_power_state = cast(bool, (flags & FLAG_ENABLE_STABLE_POWER_STATE) != 0);
 
-        ID3D12Debug1* debug_controller = null;
+        ID3D12Debug1 *debug_controller = null;
 
         if (should_enable_debug_layer == true) {
             succeeded = SUCCEEDED(D3D12GetDebugInterface(&IID_ID3D12Debug1, cast(void**, &debug_controller)));
@@ -94,7 +94,7 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        isize* ptr = null;
+        isize *ptr = null;
 
         ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
             .size_to_be_allocated_or_resized = sizeof(isize) * 128,
@@ -118,7 +118,7 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        isize* ptr = null;
+        isize *ptr = null;
 
         ptr = temporary_allocator.procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
             .size_to_be_allocated_or_resized = sizeof(isize) * 128,
@@ -144,7 +144,7 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        isize* ptr = null;
+        isize *ptr = null;
 
         ptr = alloc(sizeof(isize) * 128);
         ptr = resize(ptr, sizeof(isize) * 192);
@@ -161,7 +161,7 @@ int main(void) {
 
         contextSetAllocators(&temporary_allocator);
 
-        isize* ptr = null;
+        isize *ptr = null;
 
         ptr = alloc(sizeof(isize) * 128);
         ptr = resize(ptr, sizeof(isize) * 192);
@@ -179,7 +179,7 @@ int main(void) {
     {
         f64 const start = timeStamp();
 
-        isize* ptr = null;
+        isize *ptr = null;
 
         ptr = alloc(sizeof(isize) * 128);
         ptr = resize(ptr, sizeof(isize) * 192);
@@ -197,7 +197,7 @@ int main(void) {
         isize const iterations = 8192;
         isize const count      = 1024;
         for (isize i = 0; i < iterations; i += 1) {
-            isize* dynamic_array = null;
+            isize *dynamic_array = null;
 
             for (isize j = 0; j < count; j += 1) {
                 darrAppend(dynamic_array, j * j * i);
@@ -221,7 +221,7 @@ int main(void) {
         isize const iterations = 8192;
         isize const count      = 1024;
         for (isize i = 0; i < iterations; i += 1) {
-            isize* dynamic_array = null;
+            isize *dynamic_array = null;
 
             for (isize j = 0; j < count; j += 1) {
                 darrAppend(dynamic_array, j * j * i);
@@ -243,8 +243,8 @@ int main(void) {
 
         contextSetAllocators(&temporary_allocator);
 
-        isize* ptr   = null;
-        isize* ptr_2 = null;
+        isize *ptr   = null;
+        isize *ptr_2 = null;
 
         ptr   = alloc(sizeof(isize) * 128);
         ptr   = resize(ptr, sizeof(isize) * 192);

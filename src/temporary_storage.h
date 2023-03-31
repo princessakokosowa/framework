@@ -6,27 +6,27 @@
 
 #define OVERFLOW_PAGE_COUNT 16384
 typedef struct {
-    u8* ptr;
+    u8 *ptr;
 } OverflowPage;
 
 #define TEMPORARY_STORAGE_COUNT 16384
 typedef struct {
     i16 occupied;
     i16 last;
-    u8* ptr;
+    u8  *ptr;
 } TemporaryStorage;
 
 TemporaryStorage temporary_storage;
 Allocator        temporary_allocator;
 
-void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription* description) {
+void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->ptr_to_heap == null);
 
     if (mode == ALLOCATOR_MODE_ALLOCATE) {
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
         isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        u8*   const chunk                   = temporary_storage.ptr + temporary_storage.occupied;
+        u8    const *chunk                  = temporary_storage.ptr + temporary_storage.occupied;
 
         temporary_storage.last     =  temporary_storage.occupied;
         temporary_storage.occupied += aligned_allocation_size;
@@ -52,7 +52,7 @@ void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
         isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        u8*   const chunk                   = temporary_storage.ptr + temporary_storage.occupied;
+        u8    const *chunk                  = temporary_storage.ptr + temporary_storage.occupied;
 
         temporary_storage.occupied += aligned_allocation_size;
 

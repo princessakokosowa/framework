@@ -6,13 +6,13 @@
 #include "temporary_storage.h"
 
 typedef struct {
-    Allocator* allocator;
-    Allocator* remembered_allocator;
+    Allocator *allocator;
+    Allocator *remembered_allocator;
 } Context;
 
 Context context;
 
-void* defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription* description) {
+void* defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->ptr_to_heap == null);
 
     if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void*,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
@@ -39,7 +39,7 @@ void contextRememberAllocators(void) {
     context.remembered_allocator = context.allocator;
 }
 
-void contextSetAllocators(Allocator* allocator) {
+void contextSetAllocators(Allocator *allocator) {
     contextRememberAllocators();
 
     context.allocator = allocator;
@@ -61,7 +61,7 @@ int contextDestroy(void) {
 }
 
 void* _alloc(isize type_size_times_count) {
-    void* maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+    void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
         .ptr_to_heap                     = context.allocator->ptr_to_heap,
     });
@@ -71,10 +71,10 @@ void* _alloc(isize type_size_times_count) {
     return maybe_ptr;
 }
 
-void* _resize(void* ptr, isize type_size_times_count) {
+void* _resize(void *ptr, isize type_size_times_count) {
     assert(ptr != null);
 
-    void* maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+    void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
         .ptr_to_be_resized_or_freed      = ptr,
         .size_to_be_allocated_or_resized = type_size_times_count,
         .ptr_to_heap                     = context.allocator->ptr_to_heap,
@@ -85,10 +85,10 @@ void* _resize(void* ptr, isize type_size_times_count) {
     return maybe_ptr;
 }
 
-void _free(void* ptr) {
+void _free(void *ptr) {
     assert(ptr != null);
 
-    void* result_but_ptr = context.allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
+    void *result_but_ptr = context.allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
         .ptr_to_be_resized_or_freed = ptr,
         .ptr_to_heap                = context.allocator->ptr_to_heap,
     });
