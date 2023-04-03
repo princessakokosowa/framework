@@ -97,6 +97,12 @@ typedef i64                isize;
 
 #endif // _MSC_VER
 
+#ifdef _WIN32
+
+    #define __func__ __FUNCTION__
+
+#endif // _WIN32
+
 // @TODO
 // Make up for these includes.
 #include <stdio.h>
@@ -122,23 +128,17 @@ void _assert(bool ok, const char *file, int line, const char *func) {
     }
 }
 
-#ifdef _WIN32
-
-    #define __func__ __FUNCTION__
-
-#endif // _WIN32
-
-#define _unreachable() _panic("Unreachable at %s:%d in %s. This is a bug in the Zig compiler.", __FILE__, __LINE__, __func__)
-
 #undef assert
 
 #ifdef _DEBUG
 
-    #define assert(ok) _assert(ok, __FILE__, __LINE__, __func__)
+    #define assert(ok)    _assert(ok, __FILE__, __LINE__, __func__)
+    #define unreachable() _panic("Unreachable at %s:%d in %s. This is a bug in the Zig compiler.", __FILE__, __LINE__, __func__)
 
 #else
 
     #define assert(ok)
+    #define unreachable()
 
 #endif // _DEBUG
 

@@ -6,14 +6,14 @@
 
 #define OVERFLOW_PAGE_COUNT 16384
 typedef struct {
-    u8 *ptr;
+    u8 *ptr_to_heap;
 } OverflowPage;
 
 #define TEMPORARY_STORAGE_COUNT 16384
 typedef struct {
     i16 occupied;
     i16 last;
-    u8  *ptr;
+    u8  *ptr_to_heap;
 } TemporaryStorage;
 
 TemporaryStorage temporary_storage;
@@ -26,16 +26,16 @@ void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
         isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        u8    const *chunk                  = temporary_storage.ptr + temporary_storage.occupied;
+        u8          *chunk                  = temporary_storage.ptr_to_heap + temporary_storage.occupied;
 
         temporary_storage.last     =  temporary_storage.occupied;
         temporary_storage.occupied += aligned_allocation_size;
 
-        return chunk;
+        return cast(void*, chunk);
     } else if (mode == ALLOCATOR_MODE_RESIZE) {
         assert(description->ptr_to_be_resized_or_freed != null);
 
-        bool const is_this_the_previous_allocation = temporary_storage.ptr + temporary_storage.last == cast(u8*, description->ptr_to_be_resized_or_freed);
+        bool const is_this_the_previous_allocation = temporary_storage.ptr_to_heap + temporary_storage.last == cast(u8*, description->ptr_to_be_resized_or_freed);
 
         if (is_this_the_previous_allocation == true) {
             isize const previous_allocation_size = temporary_storage.occupied - temporary_storage.last;
@@ -52,7 +52,7 @@ void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
         isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        u8    const *chunk                  = temporary_storage.ptr + temporary_storage.occupied;
+        u8          *chunk                  = temporary_storage.ptr_to_heap + temporary_storage.occupied;
 
         temporary_storage.occupied += aligned_allocation_size;
 
@@ -60,17 +60,17 @@ void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
             chunk[i] = cast(u8*, description->ptr_to_be_resized_or_freed)[i];
         }
 
-        return chunk;
+        return cast(void*, chunk);
     } else {
         return cast(void*, cast(i64, true));
     }
 
-    _unreachable();
+    unreachable();
 }
 
 void temporaryStorageCreate(void) {
     temporary_storage = (TemporaryStorage) {
-        .ptr = alloc(TEMPORARY_STORAGE_COUNT),
+        .ptr_to_heap = alloc(TEMPORARY_STORAGE_COUNT),
     };
 
     temporary_allocator = (Allocator) {
@@ -83,7 +83,7 @@ void temporaryStorageDestroy(void) {
         0,
     };
 
-    free(temporary_storage.ptr);
+    free(temporary_storage.ptr_to_heap);
 
     temporary_storage = (TemporaryStorage) {
         0,

@@ -1,6 +1,15 @@
+// @TODO
+// Figure out the order of these included headers.
+//     ~ princessakokosowa, 3rd of April 2023
+
+// Foreign headers.
+#include "foreign.h"
+
+// Local headers.
 #include "foundation.h"
 #include "context.h"
 #include "dynamic_array.h"
+#include "bump_allocator.h"
 
 f64 timeStamp(void) {
     // `counter_start` and `counter_end` are both, eh, counters, which are dependent on
@@ -35,13 +44,13 @@ f64 timeStamp(void) {
 
 #ifndef _MSC_VER
 
-void __attribute__ ((constructor)) preload(void) {
-    contextCreate();
-}
+    void __attribute__ ((constructor)) preload(void) {
+        contextCreate();
+    }
 
-void __attribute__ ((destructor)) tidyUp(void) {
-    contextDestroy();
-}
+    void __attribute__ ((destructor)) tidyUp(void) {
+        contextDestroy();
+    }
 
 #endif // _MSC_VER
 
@@ -101,7 +110,7 @@ int main(void) {
         });
 
         ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
-            .ptr_to_be_resized_or_freed     = ptr,
+            .ptr_to_be_resized_or_freed      = ptr,
             .size_to_be_allocated_or_resized = sizeof(isize) * 192,
         });
 
@@ -168,6 +177,48 @@ int main(void) {
         free(ptr);
 
         f64 const end = timeStamp();
+
+        {
+            Arena arena = arenaCreate(&(ArenaDescription) {
+                0,
+            });
+
+            Allocator arena_allocator = arenaGetAllocator(&arena);
+
+            contextSetAllocators(&arena_allocator);
+
+            isize const chuj_count = 5;
+            char        *dummy     = alloc(sizeof(char) * chuj_count);
+
+            dummy[0] = 'c';
+            dummy[1] = 'h';
+            dummy[2] = 'u';
+            dummy[3] = 'j';
+            dummy[4] = '\0';
+
+            printf("%s\n", dummy);
+
+            contextRemindAllocators();
+
+            arenaDestroy(&arena);
+        }
+
+        {
+            i32 *ptr_2 = cast(i32*, alloc(sizeof(i32) * 128));
+
+            Arena arena = arenaCreate(&(ArenaDescription) {
+                .ptr_to_heap = ptr_2,
+            });
+
+            Allocator arena_allocator = arenaGetAllocator(&arena);
+
+            contextSetAllocators(&arena_allocator);
+            contextRemindAllocators();
+
+            arenaDestroy(&arena);
+
+            free(ptr_2);
+        }
 
         temporaryStorageReset();
         contextRemindAllocators();

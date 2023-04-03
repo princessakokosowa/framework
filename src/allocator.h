@@ -63,14 +63,6 @@ typedef struct {
     void *ptr_to_heap;
 } AllocatorDescription;
 
-// At this point we treat the `AllocatorProcedure` type as an allocator, although an
-// allocator is more precisely a procedure for allocating + some user data. For the
-// moment, for present purposes, we will stick with it, because it works and does not
-// cause problems.
-//
-// @TODO
-// Consider changing it.
-//     ~ princessakokosowa, 10th of March 2023
 typedef void* (AllocatorProcedure)(AllocatorMode mode, AllocatorDescription *description);
 
 typedef struct {

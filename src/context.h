@@ -5,9 +5,16 @@
 #include "allocator.h"
 #include "temporary_storage.h"
 
+// Do we actually want to do it that way? I mean, our call stack _probably_ won't be
+// deeper than 32 procedure calls, or maybe it will? I don't know, man, but let's go that
+// way and see whether it works for that use case.
+//     ~ princessakokosowa, 3rd of April 2023
+#define MAX_REMEMBERED_LIST_COUNT 32
 typedef struct {
+    isize     remembered_count;
+    Allocator *remembered_list[MAX_REMEMBERED_LIST_COUNT];
+
     Allocator *allocator;
-    Allocator *remembered_allocator;
 } Context;
 
 Context context;
@@ -19,7 +26,7 @@ void* defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descri
     else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void*,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_FREE)     return cast(void*, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
 
-    _unreachable();
+    unreachable();
 }
 
 Allocator default_allocator = (Allocator) {
@@ -36,7 +43,10 @@ void contextCreate(void) {
 }
 
 void contextRememberAllocators(void) {
-    context.remembered_allocator = context.allocator;
+    assert(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
+
+    context.remembered_list[context.remembered_count] = context.allocator;
+    context.remembered_count                          += 1;
 }
 
 void contextSetAllocators(Allocator *allocator) {
@@ -46,8 +56,9 @@ void contextSetAllocators(Allocator *allocator) {
 }
 
 void contextRemindAllocators(void) {
-    context.allocator            = context.remembered_allocator;
-    context.remembered_allocator = null;
+    context.remembered_count                          -= 1;
+    context.allocator                                 = context.remembered_list[context.remembered_count];
+    context.remembered_list[context.remembered_count] = null;
 }
 
 int contextDestroy(void) {

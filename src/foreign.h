@@ -1,0 +1,4 @@
+#ifndef INCLUDE_FOREIGN_H
+#define INCLUDE_FOREIGN_H
+
+#endif // INCLUDE_FOREIGN_H
