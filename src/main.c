@@ -10,8 +10,6 @@
 #include "context.h"
 #include "dynamic_array.h"
 #include "arena.h"
-#include "arena_mproved.h"
-
 
 f64 timeStamp(void) {
     // `counter_start` and `counter_end` are both, eh, counters, which are dependent on
@@ -232,62 +230,6 @@ int main(void) {
             contextRemindAllocators();
 
             arenaDestroy(&arena);
-
-            free(ptr_2);
-        }
-
-        {
-            Arena2 arena2 = arena2Create(&(Arena2Description) {
-                0,
-            });
-
-            Allocator arena2_allocator = arena2GetAllocator(&arena2);
-
-            contextSetAllocators(&arena2_allocator);
-
-            isize const chuj_count = 5;
-            char        *dummy     = alloc(sizeof(char) * chuj_count);
-
-            dummy[0] = 'c';
-            dummy[1] = 'h';
-            dummy[2] = 'u';
-            dummy[3] = 'j';
-            dummy[4] = '\0';
-
-            printf("%s\n", dummy);
-
-            contextRemindAllocators();
-
-            arena2Destroy(&arena2);
-        }
-
-        {
-            isize const heap_size = 32;
-            i32         *ptr_2    = cast(i32*, alloc(sizeof(i32) * heap_size));
-
-            Arena2 arena2 = arena2Create(&(Arena2Description) {
-                .ptr_to_heap = ptr_2,
-                .count       = sizeof(i32) * heap_size,
-            });
-
-            Allocator arena2_allocator = arena2GetAllocator(&arena2);
-
-            contextSetAllocators(&arena2_allocator);
-
-            isize const chuj_count = 5;
-            char        *dummy     = alloc(sizeof(char) * chuj_count);
-
-            dummy[0] = 'c';
-            dummy[1] = 'h';
-            dummy[2] = 'u';
-            dummy[3] = 'j';
-            dummy[4] = '\0';
-
-            printf("%s\n", dummy);
-
-            contextRemindAllocators();
-
-            arena2Destroy(&arena2);
 
             free(ptr_2);
         }

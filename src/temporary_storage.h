@@ -20,8 +20,6 @@ TemporaryStorage temporary_storage;
 Allocator        temporary_allocator;
 
 void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
-    assert(description->ptr_to_heap == null);
-
     if (mode == ALLOCATOR_MODE_ALLOCATE) {
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
