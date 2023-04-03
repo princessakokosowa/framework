@@ -61,6 +61,10 @@ typedef struct {
     // @TODO
     // Write a description for that.
     void *ptr_to_heap;
+
+    // @TODO
+    // Write a description for that.
+    void *impl;
 } AllocatorDescription;
 
 typedef void* (AllocatorProcedure)(AllocatorMode mode, AllocatorDescription *description);
@@ -68,6 +72,12 @@ typedef void* (AllocatorProcedure)(AllocatorMode mode, AllocatorDescription *des
 typedef struct {
     AllocatorProcedure *procedure;
     void               *ptr_to_heap;
+
+    // FOR NOW.
+    // I prefer to have an extra pointer to the state of an allocator than to compensate
+    // for the fact that I have to allocate space for EITHER the state OR the pointer to
+    // the state of an allocator EITHER on our heap OR on a user-provided heap.
+    void               *impl;
 } Allocator;
 
 void* _alloc(isize type_size_times_count);

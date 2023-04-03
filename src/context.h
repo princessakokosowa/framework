@@ -75,6 +75,7 @@ void* _alloc(isize type_size_times_count) {
     void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
         .ptr_to_heap                     = context.allocator->ptr_to_heap,
+        .impl                            = context.allocator->impl,
     });
 
     assert(maybe_ptr != null);
@@ -89,6 +90,7 @@ void* _resize(void *ptr, isize type_size_times_count) {
         .ptr_to_be_resized_or_freed      = ptr,
         .size_to_be_allocated_or_resized = type_size_times_count,
         .ptr_to_heap                     = context.allocator->ptr_to_heap,
+        .impl                            = context.allocator->impl,
     });
 
     assert(maybe_ptr != null);
@@ -102,6 +104,7 @@ void _free(void *ptr) {
     void *result_but_ptr = context.allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
         .ptr_to_be_resized_or_freed = ptr,
         .ptr_to_heap                = context.allocator->ptr_to_heap,
+        .impl                       = context.allocator->impl,
     });
 
     assert(result_but_ptr != null);
