@@ -67,13 +67,35 @@ typedef enum Flag {
 // That's less annoying.
 typedef usize Flags;
 
+void copy(void *destination, isize destination_size, void *source, isize source_size) {
+    assert(destination != null);
+    assert(source != null);
+    assert(destination_size >= source_size);
+
+    for (isize i = 0; i < source_size; i += 1) {
+        *(cast(u8*, destination) + i) = *(cast(u8*, source) + i);
+    }
+}
+
+isize stringCount(u8 *c_string) {
+    isize count = 0;
+    while (*c_string) {
+        c_string += 1;
+        count    += 1;
+    }
+
+    return count;
+}
+
+void stringCopy(u8 *destination, u8 *source) {
+    isize source_count = stringCount(source);
+
+    copy(destination, source_count, source, source_count);
+
+    destination[source_count] = '\0';
+}
+
 int main(void) {
-#ifdef _MSC_VER
-
-    contextCreate();
-
-#endif // _MSC_VER
-
     Flags flags = FLAG_ENABLE_DEBUG_LAYER | FLAG_ENABLE_SHADER_DEBUGGING | FLAG_ENABLE_STABLE_POWER_STATE;
 
     // @TODO
@@ -82,8 +104,8 @@ int main(void) {
     //
     // Enable the debug layer (and maybe a couple more things) provided by Direct3D 12.
     {
-        bool       succeeded                        = true;
-        bool const should_enable_debug_layer        = cast(bool, (flags & FLAG_ENABLE_DEBUG_LAYER       ) != 0);
+        bool succeeded                        = true;
+        bool should_enable_debug_layer        = cast(bool, (flags & FLAG_ENABLE_DEBUG_LAYER       ) != 0);
         // bool const should_enable_shader_debugging   = cast(bool, (flags & FLAG_ENABLE_SHADER_DEBUGGING  ) != 0);
         // bool const should_enable_stable_power_state = cast(bool, (flags & FLAG_ENABLE_STABLE_POWER_STATE) != 0);
 
@@ -99,13 +121,27 @@ int main(void) {
         }
     }
 
-#ifdef _MSC_VER
+    Arena arena = arenaCreate(&(ArenaDescription) {
+        0,
+    });
 
-    return contextDestroy();
+    isize buf_count = 24;
+    isize buf_size  = sizeof(u8) * buf_count;
+    u8    *buf      = arenaGet(&arena, buf_size);
 
-#else
+    u8 strings[][24] = {
+    //           ^^
+    //           FML
+        "Hello,",
+        "world!",
+        "I am still standing.",
+    };
+
+    for (isize i = 0; i < arrayCount(strings); i += 1) {
+        stringCopy(buf, cast(u8*, strings[i]));
+
+        printf("%s\n", buf);
+    }
 
     return 0;
-
-#endif // defined(_MSC_VER)
 }

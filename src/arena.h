@@ -70,6 +70,24 @@ void* arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descript
 }
 
 Arena arenaCreate(ArenaDescription *description) {
+    // @SUCCINCTNESS
+    // Here's a problem, we may have allocated arena with one allocator, but want to free
+    // its memory with another. This is probably due to misuse of the framework's
+    // features, but either way, we might want to be proof of such foolishness and
+    // therefore introduce a mechanism to prevent users from doing such stupid things.
+    //
+    // Similar to how we set allocators and remember them in `Context`, we could also try
+    // to remember allocators at the time this allocator (or any other thing?) is created.
+    // That way, when we destroy an object, we can check that the allocator we are about
+    // to destroy is actually the same allocator we used to allocate the object in the
+    // first place.
+    //
+    // This may add some overhead to our program, but well, allocators are usually not in
+    // the hot paths of programs (and even if they were, they are globally accessible
+    // due to the architecture of this framework.
+    //
+    // We shall see.
+    //     ~ princessakokosowa, 3rd of April 2023
     u8   *ptr_to_heap           = null;
     bool has_user_provided_heap = description->ptr_to_heap != null;
     if (!has_user_provided_heap) ptr_to_heap = cast(u8*, alloc(AREA_STORAGE_DEFAULT_COUNT));
@@ -90,7 +108,15 @@ void arenaDestroy(Arena *arena) {
     };
 }
 
-Allocator arenaGetAllocator(Arena *arena) {
+void* arenaGet(Arena *arena, isize type_size_times_count) {
+    return arenaAllocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
+        .size_to_be_allocated_or_resized = type_size_times_count,
+        .impl                            = cast(void*, arena),
+    });
+}
+
+
+Allocator arenaAllocator(Arena *arena) {
     return (Allocator) {
         .procedure = arenaAllocatorProcedure,
         .impl      = cast(void*, arena),
