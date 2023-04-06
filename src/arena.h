@@ -1,5 +1,5 @@
-#ifndef INCLUDE_ARENA_ALLOCATOR_H
-#define INCLUDE_ARENA_ALLOCATOR_H
+#ifndef INCLUDE_ARENA_H
+#define INCLUDE_ARENA_H
 
 #include "foundation.h"
 #include "allocator.h"
@@ -123,4 +123,4 @@ Allocator arenaAllocator(Arena *arena) {
     };
 }
 
-#endif // INCLUDE_ARENA_ALLOCATOR_H
+#endif // INCLUDE_ARENA_H
