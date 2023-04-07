@@ -10,6 +10,7 @@
 #include "context.h"
 #include "dynamic_array.h"
 #include "arena.h"
+#include "gpu.h"
 
 f64 timeStamp(void) {
     // `counter_start` and `counter_end` are both, eh, counters, which are dependent on

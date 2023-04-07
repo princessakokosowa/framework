@@ -2,143 +2,129 @@
 #define INCLUDE_GPU_H
 
 #include "foundation.h"
-#include "allocator.h"
-
-typedef struct {
-	isize count;
-	void* ptr_to_heap;
-} ArenaDescription;
-
-typedef struct {
-	bool  has_user_provided_heap;
-	isize count;
-	isize occupied;
-	isize last;
-
-	u8* ptr_to_heap;
-} Arena;
 
 typedef enum {
-	GpuBuffer_TYPE_VERTEX,
-	GpuBuffer_TYPE_INDEX,
-	GpuBuffer_TYPE_UNIFORM,
-	GpuBuffer_TYPE_STORAGE,
+    GPU_BUFFER_TYPE_VERTEX,
+    GPU_BUFFER_TYPE_INDEX,
+    GPU_BUFFER_TYPE_UNIFORM,
+    GPU_BUFFER_TYPE_STORAGE,
 } GpuBufferType;
 
 typedef struct {
-	// ...
+    GpuBufferType type;
+    isize         size;
+    isize         stride;
 } GpuBufferDescription;
 
 typedef struct {
-	GpuBufferType type;
-	isize         size;
-	isize         stride;
-	void          *impl;
+    GpuBufferType type;
+    isize         size;
+    isize         stride;
+    void          *impl;
 } GpuBuffer;
 
 GpuBuffer gpuBufferCreate(GpuBufferDescription *description);
 void gpuBufferDestroy(GpuBuffer *arena);
 
 typedef enum {
-	GPU_TEXTURE_ADDRESS_WRAP,
-	GPU_TEXTURE_ADDRESS_MIRROR,
-	GPU_TEXTURE_ADDRESS_CLAMP,
-	GPU_TEXTURE_ADDRESS_BORDER,
+    GPU_TEXTURE_ADDRESS_WRAP,
+    GPU_TEXTURE_ADDRESS_MIRROR,
+    GPU_TEXTURE_ADDRESS_CLAMP,
+    GPU_TEXTURE_ADDRESS_BORDER,
 } GpuTextureAddress;
 
 typedef enum {
-	GPU_TEXTURE_FILTER_NEAREST,
-	GPU_TEXTURE_FILTER_LINEAR,
-	GPU_TEXTURE_FILTER_ANISOTROPIC,
+    GPU_TEXTURE_FILTER_NEAREST,
+    GPU_TEXTURE_FILTER_LINEAR,
+    GPU_TEXTURE_FILTER_ANISOTROPIC,
 } GpuTextureFilter;
 
 typedef struct {
-	GpuTextureAddress address;
-	GpuTextureFilter  filter;
+    GpuTextureAddress address;
+    GpuTextureFilter  filter;
 } GpuSamplerDescription;
 
 typedef struct {
-	GpuTextureAddress address;
-	GpuTextureFilter  filter;
-	void              *impl;
+    GpuTextureAddress address;
+    GpuTextureFilter  filter;
+    void              *impl;
 } GpuSampler;
 
 GpuSampler gpuSamplerCreate(GpuSamplerDescription *description);
 void gpuSamplerDestroy(GpuSampler *sampler);
 
 typedef struct {
-	u8 *vertex;
-	u8 *pixel;
-	u8 *compute;
+    u8 *vertex;
+    u8 *pixel;
+    u8 *compute;
 } GpuShaderDescription;
 
 typedef struct {
-	void *impl;
+    void *impl;
 } GpuShader;
 
 GpuShader gpuShaderCreate(GpuShaderDescription *description);
 void gpuShaderDestroy(GpuShader *shader);
 
 typedef struct {
-	u8 *path;
+    u8 *path;
 } ImageDescription;
 
 typedef struct {
-	isize width;
-	isize height;
-	isize channels;
-	bool  is_f32;
-	void  *data;
+    isize width;
+    isize height;
+    isize channels;
+    bool  is_f32;
+    void  *data;
 } Image;
 
 Image imageCreate(ImageDescription *description);
 void imageDestroy(Image *Image);
 
 typedef enum {
-	GpuImage_FORMAT_RGBA8,
-	GpuImage_FORMAT_RGBA32f32,
-	GpuImage_FORMAT_RGBA16f32,
-	GpuImage_FORMAT_R32DEPTH,
+    GPU_IMAGE_FORMAT_RGBA8,
+    GPU_IMAGE_FORMAT_RGBA32F32,
+    GPU_IMAGE_FORMAT_RGBA16F32,
+    GPU_IMAGE_FORMAT_R32DEPTH,
 } GpuImageFormat;
 
 typedef enum {
-	GpuImageLayout_COMMON,
-	GpuImageLayout_SHADERRESOURCE,
-	GpuImageLayout_STORAGE,
-	GpuImageLayout_DEPTH,
-	GpuImageLayout_RENDERTARGET,
-	GpuImageLayout_COPYSOURCE,
-	GpuImageLayout_COPYDEST,
-	GpuImageLayout_PRESENT,
-	GpuImageLayout_GENERICREAD,
+    GPU_IMAGE_LAYOUT_COMMON,
+    GPU_IMAGE_LAYOUT_SHADERRESOURCE,
+    GPU_IMAGE_LAYOUT_STORAGE,
+    GPU_IMAGE_LAYOUT_DEPTH,
+    GPU_IMAGE_LAYOUT_RENDERTARGET,
+    GPU_IMAGE_LAYOUT_COPYSOURCE,
+    GPU_IMAGE_LAYOUT_COPYDEST,
+    GPU_IMAGE_LAYOUT_PRESENT,
+    GPU_IMAGE_LAYOUT_GENERICREAD,
 } GpuImageLayout;
 
 typedef GpuImageLayout GpuBufferLayout;
 
 typedef enum {
-	GpuImage_USAGE_COPY,
-	GpuImage_USAGE_RENDERTARGET,
-	GpuImage_USAGE_DEPTHTARGET,
-	GpuImage_USAGE_STORAGE,
-	GpuImage_USAGE_SHADERRESOURCE,
+    GPU_IMAGE_USAGE_COPY,
+    GPU_IMAGE_USAGE_RENDERTARGET,
+    GPU_IMAGE_USAGE_DEPTHTARGET,
+    GPU_IMAGE_USAGE_STORAGE,
+    GPU_IMAGE_USAGE_SHADERRESOURCE,
 } GpuImageUsage;
 
 typedef struct {
-	GpuImageFormat format;
-	GpuImageUsage  usage;
-	isize          width;
-	isize          height;
-
-	Image          *maybe_image
+    GpuImageFormat format;
+    GpuImageUsage  usage;
+    isize          width;
+    isize          height;
+    Image          *maybe_image;
 } GpuImageDescription;
 
 typedef struct {
-	isize          width;
-	isize          height;
-	GpuImageFormat format;
-	GpuImageLayout layout;
-	GpuImageUsage  usage;
-	void           *impl;
+    isize          width;
+    isize          height;
+    GpuImageFormat format;
+    GpuImageLayout layout;
+    GpuImageUsage  usage;
+    void           *impl;
 } GpuImage;
 
 GpuImage gpuImageCreate(GpuImageDescription *description);
@@ -148,49 +134,49 @@ GpuImage gpuImageCreateFromCPU(GpuImageDescription *description);
 void gpuImageDestroy(GpuImage *GpuImage);
 
 typedef enum {
-	GpuPipelineType_GRAPHICS,
-	GpuPipelineType_COMPUTE,
+    GPU_PIPELINE_TYPE_GRAPHICS,
+    GPU_PIPELINE_TYPE_COMPUTE,
 } GpuPipelineType;
 
 typedef enum {
-	FILL_MODE_SOLID,
-	FILL_MODE_LINE,
+    FILL_MODE_SOLID,
+    FILL_MODE_LINE,
 } FillMode;
 
 typedef enum {
-	CULL_MODE_NONE,
-	CULL_MODE_BACK,
-	CULL_MODE_FRONT,
+    CULL_MODE_NONE,
+    CULL_MODE_BACK,
+    CULL_MODE_FRONT,
 } CullMode;
 
 typedef enum {
-	DEPTH_FUNC_GREATER,
-	DEPTH_FUNC_LESS,
-	DEPTH_FUNC_LESSEQUAL,
-	DEPTH_FUNC_NONE
+    DEPTH_FUNC_GREATER,
+    DEPTH_FUNC_LESS,
+    DEPTH_FUNC_LESSEQUAL,
+    DEPTH_FUNC_NONE,
 } DepthFunc;
 
 typedef struct {
-	bool            has_depth;
-	GpuPipelineType type;
-	FillMode        fill_mode;
-	CullMode        cull_mode;
-	DepthFunc       depth_func;
-	GpuShader       *shader;
-	GpuImageFormat  *image_formats;
-	GpuImageFormat  depth_format;
+    bool            has_depth;
+    GpuPipelineType type;
+    FillMode        fill_mode;
+    CullMode        cull_mode;
+    DepthFunc       depth_func;
+    GpuShader       *shader;
+    GpuImageFormat  *image_formats;
+    GpuImageFormat  depth_format;
 } GpuPipelineDescription;
 
 typedef struct {
-	bool            has_depth;
-	GpuPipelineType type;
-	FillMode        fill_mode;
-	CullMode        cull_mode;
-	DepthFunc       depth_func;
-	GpuShader       *shader;
-	GpuImageFormat  *image_formats;
-	GpuImageFormat  depth_format;
-	void            *impl;
+    bool            has_depth;
+    GpuPipelineType type;
+    FillMode        fill_mode;
+    CullMode        cull_mode;
+    DepthFunc       depth_func;
+    GpuShader       *shader;
+    GpuImageFormat  *image_formats;
+    GpuImageFormat  depth_format;
+    void            *impl;
 } GpuPipeline;
 
 GpuPipeline gpuPipelineGraphicsCreate(GpuPipelineDescription *description);
@@ -199,40 +185,40 @@ void gpuPipelineDestroy(GpuPipeline *pipeline);
 // isize gpuPipelineGetDescriptor(GpuPipeline *Pipeline, u8 *name);
 
 typedef struct {
-	isize ia_vertices;
-	isize ia_primitives;
-	isize vs_invocations;
-	isize gs_invocations;
-	isize gs_primitives;
-	isize c_invocations;
-	isize c_primitives;
-	isize ps_invocations;
-	isize hs_invocations;
-	isize ds_invocations;
-	isize cs_invocations;
+    isize ia_vertices;
+    isize ia_primitives;
+    isize vs_invocations;
+    isize gs_invocations;
+    isize gs_primitives;
+    isize c_invocations;
+    isize c_primitives;
+    isize ps_invocations;
+    isize hs_invocations;
+    isize ds_invocations;
+    isize cs_invocations;
 } GpuPipelineStatistics;
 
 typedef struct {
-	// ...
+    GpuPipelineStatistics statistics;
 } GpuPipelineProfilerDescription;
 
 typedef struct {
-	GpuPipelineStatistics statistics;
-	void                  *impl;
+    GpuPipelineStatistics statistics;
+    void                  *impl;
 } GpuPipelineProfiler;
 
 GpuPipelineProfiler gpuPipelineProfilerCreate(GpuPipelineProfilerDescription *description);
 void gpuPipelineProfilerDestroy(GpuPipelineProfiler *profiler);
 
 typedef enum {
-	GPU_COMMAND_BUFFER_TYPE_GRAPHICS,
-	GPU_COMMAND_BUFFER_TYPE_COMPUTE,
-	GPU_COMMAND_BUFFER_TYPE_UPLOAD
+    GPU_COMMAND_BUFFER_TYPE_GRAPHICS,
+    GPU_COMMAND_BUFFER_TYPE_COMPUTE,
+    GPU_COMMAND_BUFFER_TYPE_UPLOAD,
 } GpuCommandBufferType;
 
 typedef struct {
-	GpuCommandBufferType type;
-	void                 *impl;
+    GpuCommandBufferType type;
+    void                 *impl;
 } GpuCommandBuffer;
 
 GpuCommandBuffer GpuCommandBufferCreate(GpuCommandBufferType type);
@@ -278,8 +264,8 @@ void GpuCommandBufferFlush(GpuCommandBuffer *command_buffer);
 void GpuCommandBufferScreenshot(GpuCommandBuffer *command_buffer, GpuImage *Image, GpuBuffer *Temporary);
 
 typedef enum {
-	GPU_IMPL_DIRECT3D_12,
-	GPU_IMPL_VULKAN,
+    GPU_IMPL_DIRECT3D_12,
+    GPU_IMPL_VULKAN,
 } GpuImpl;
 
 GpuImpl gpuGetImpl();
@@ -293,14 +279,14 @@ void gpuPresent();
 void gpuWait();
 
 typedef struct {
-	union {
-		struct {
-			isize x;
-			isize y;
-		};
+    union {
+        struct {
+            isize x;
+            isize y;
+        };
 
-		// ...
-	};
+        // ...
+    };
 } Vector2i;
 
 Vector2i gpuGetDimensions();
