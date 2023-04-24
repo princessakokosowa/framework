@@ -81,6 +81,8 @@ void stringCopy(u8 *destination, u8 *source) {
     destination[source_count] = '\0';
 }
 
+#define BUFFER_COUNT 64
+
 int main(void) {
     Flags flags = FLAG_ENABLE_DEBUG_LAYER | FLAG_ENABLE_SHADER_DEBUGGING | FLAG_ENABLE_STABLE_POWER_STATE;
 
@@ -115,11 +117,10 @@ int main(void) {
 
         // Get some memory directly from it via `arenaGet`.
         {
-            isize buf_count = 24;
-            isize buf_size  = sizeof(u8) * buf_count;
+            isize buf_size  = sizeof(u8) * BUFFER_COUNT;
             u8    *buf      = arenaGet(&arena, buf_size);
 
-            u8 strings[][24] = {
+            u8 strings[][BUFFER_COUNT] = {
                 "Hi,",
                 "my",
                 "name",
@@ -138,14 +139,13 @@ int main(void) {
         {
             Allocator arena_allocator = arenaAllocator(&arena);
 
-            isize buf_count = 24;
-            isize buf_size  = sizeof(u8) * buf_count;
+            isize buf_size  = sizeof(u8) * BUFFER_COUNT;
             u8    *buf      = arena_allocator.procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
                 .size_to_be_allocated_or_resized = buf_size,
                 .impl                            = cast(void*, &arena),
             });
 
-            u8 strings[][24] = {
+            u8 strings[][BUFFER_COUNT] = {
                 "Hi,",
                 "my",
                 "name",
@@ -166,11 +166,10 @@ int main(void) {
             Allocator arena_allocator = arenaAllocator(&arena);
             contextSetAllocators(&arena_allocator);
 
-            isize buf_count = 24;
-            isize buf_size  = sizeof(u8) * buf_count;
+            isize buf_size  = sizeof(u8) * BUFFER_COUNT;
             u8    *buf      = alloc(buf_size);
 
-            u8 strings[][24] = {
+            u8 strings[][BUFFER_COUNT] = {
                 "Hi,",
                 "my",
                 "name",
@@ -188,6 +187,31 @@ int main(void) {
         }
 
         arenaDestroy(&arena);
+    }
+
+    // Set `Context` allocators, similarly to how this is done in the previous scope,
+    // but using predefined temporary allocator (and its temporary storage).
+    {
+        contextSetAllocators(&temporary_allocator);
+
+        isize buf_size  = sizeof(u8) * BUFFER_COUNT;
+        u8    *buf      = alloc(buf_size);
+
+        u8 strings[][BUFFER_COUNT] = {
+            "Ghost of Mother lingering death",
+            "Ghost on Mother's bed",
+            "Black strands on the pillow contour of her health",
+            "Twisted face upon the head",
+        };
+
+        for (isize i = 0; i < arrayCount(strings); i += 1) {
+            stringCopy(buf, cast(u8*, strings[i]));
+
+            printf("%s\n", buf);
+        }
+
+        temporaryStorageReset();
+        contextRemindAllocators();
     }
 
     return 0;

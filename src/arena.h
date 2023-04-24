@@ -4,7 +4,7 @@
 #include "foundation.h"
 #include "allocator.h"
 
-#define AREA_STORAGE_DEFAULT_COUNT 128
+#define AREA_STORAGE_DEFAULT_COUNT 32768
 
 typedef struct {
     isize count;
