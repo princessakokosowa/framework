@@ -69,7 +69,7 @@ void *temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
 void temporaryStorageCreate(void) {
     isize temporary_storage_size  = sizeof(u8) * TEMPORARY_STORAGE_COUNT;
 
-     = (TemporaryStorage) {
+    temporary_storage = (TemporaryStorage) {
         .ptr_to_heap = alloc(temporary_storage_size),
     };
 
