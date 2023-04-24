@@ -66,6 +66,16 @@ void contextDestroy(void) {
     };
 }
 
+// @NOTE
+// This could actually be called at the very beginning and end of the `main' procedure,
+// but this way you avoid accidentally shooting yourself in the foot, e.g. by calling the
+// procedures of this framework before initialising it. This could actually be written
+// somewhere in this file, but eh, no. We're using _clang_ and the so-called GNU ABI here,
+// and so I feel somehow okay about using such compiler extensions to simplify how you
+// interact with their `main' procedure.
+//
+// If this turns out to be annoying, it will be imminently and immediately removed.
+//     ~ princessakokosowa, 24th of April 2023
 void __attribute__ ((constructor)) preload(void) {
     contextCreate();
 }
