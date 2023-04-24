@@ -40,21 +40,6 @@ f64 timeStamp(void) {
     return split;
 }
 
-// _Pragma("startup contextCreate")
-// _Pragma("exit    contextDestroy")
-
-#ifndef _MSC_VER
-
-    void __attribute__ ((constructor)) preload(void) {
-        contextCreate();
-    }
-
-    void __attribute__ ((destructor)) tidyUp(void) {
-        contextDestroy();
-    }
-
-#endif // _MSC_VER
-
 typedef enum Flag {
     FLAG_ENABLE_DEBUG_LAYER        = 1 << 0,
     FLAG_ENABLE_SHADER_DEBUGGING   = 1 << 1,
@@ -122,26 +107,87 @@ int main(void) {
         }
     }
 
-    Arena arena = arenaCreate(&(ArenaDescription) {
-        0,
-    });
+    // Create some sort of memory pool (here: `Arena`).
+    {
+        Arena arena = arenaCreate(&(ArenaDescription) {
+            0,
+        });
 
-    isize buf_count = 24;
-    isize buf_size  = sizeof(u8) * buf_count;
-    u8    *buf      = arenaGet(&arena, buf_size);
+        // Get some memory directly from it via `arenaGet`.
+        {
+            isize buf_count = 24;
+            isize buf_size  = sizeof(u8) * buf_count;
+            u8    *buf      = arenaGet(&arena, buf_size);
 
-    u8 strings[][24] = {
-    //           ^^
-    //           FML
-        "Hello,",
-        "world!",
-        "I am still standing.",
-    };
+            u8 strings[][24] = {
+                "Hi,",
+                "my",
+                "name",
+                "is,",
+                "what?",
+            };
 
-    for (isize i = 0; i < arrayCount(strings); i += 1) {
-        stringCopy(buf, cast(u8*, strings[i]));
+            for (isize i = 0; i < arrayCount(strings); i += 1) {
+                stringCopy(buf, cast(u8*, strings[i]));
 
-        printf("%s\n", buf);
+                printf("%s\n", buf);
+            }
+        }
+
+        // Get an allocator out of it and use it to get some memory.
+        {
+            Allocator arena_allocator = arenaAllocator(&arena);
+
+            isize buf_count = 24;
+            isize buf_size  = sizeof(u8) * buf_count;
+            u8    *buf      = arena_allocator.procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
+                .size_to_be_allocated_or_resized = buf_size,
+                .impl                            = cast(void*, &arena),
+            });
+
+            u8 strings[][24] = {
+                "Hi,",
+                "my",
+                "name",
+                "is,",
+                "who?",
+            };
+
+            for (isize i = 0; i < arrayCount(strings); i += 1) {
+                stringCopy(buf, cast(u8*, strings[i]));
+
+                printf("%s\n", buf);
+            }
+        }
+
+        // Set `Context` allocators and the default `alloc`-, `resize`- and `free`-based
+        // interface.
+        {
+            Allocator arena_allocator = arenaAllocator(&arena);
+            contextSetAllocators(&arena_allocator);
+
+            isize buf_count = 24;
+            isize buf_size  = sizeof(u8) * buf_count;
+            u8    *buf      = alloc(buf_size);
+
+            u8 strings[][24] = {
+                "Hi,",
+                "my",
+                "name",
+                "is,",
+                "chka-chka, Slim Shady",
+            };
+
+            for (isize i = 0; i < arrayCount(strings); i += 1) {
+                stringCopy(buf, cast(u8*, strings[i]));
+
+                printf("%s\n", buf);
+            }
+
+            contextRemindAllocators();
+        }
+
+        arenaDestroy(&arena);
     }
 
     return 0;

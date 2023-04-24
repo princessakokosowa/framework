@@ -37,7 +37,6 @@ void* arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descript
         assert(description->ptr_to_be_resized_or_freed != null);
 
         bool const is_this_the_previous_allocation = arena->ptr_to_heap + arena->last == cast(u8*, description->ptr_to_be_resized_or_freed);
-
         if (is_this_the_previous_allocation == true) {
             isize const previous_allocation_size = arena->occupied - arena->last;
             isize const allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;

@@ -58,14 +58,20 @@ void contextRemindAllocators(void) {
     context.remembered_list[context.remembered_count] = null;
 }
 
-int contextDestroy(void) {
+void contextDestroy(void) {
     temporaryStorageDestroy();
 
     context = (Context) {
         0,
     };
+}
 
-    return 0;
+void __attribute__ ((constructor)) preload(void) {
+    contextCreate();
+}
+
+void __attribute__ ((destructor)) tidyUp(void) {
+    contextDestroy();
 }
 
 void* _alloc(isize type_size_times_count) {
