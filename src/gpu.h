@@ -26,6 +26,25 @@ typedef struct {
 GpuBuffer gpuBufferCreate(GpuBufferDescription *description);
 void gpuBufferDestroy(GpuBuffer *arena);
 
+// @TODO
+// Move that to a separate header file.
+typedef struct {
+    isize which_heap;
+
+    D3D12_VERTEX_BUFFER_VIEW vertex_buffer_view;
+    D3D12_INDEX_BUFFER_VIEW  index_buffer_view;
+
+    // @TODO
+    // `constant_buffer_view` to `cbv` and `unordered_access_view` -> `uav`?
+    D3D12_CONSTANT_BUFFER_VIEW_DESC  constant_buffer_view_description;
+    D3D12_UNORDERED_ACCESS_VIEW_DESC unordered_access_view_description;
+
+    // @TODO Port Direct3D 12 Memory Allocator to C.
+    // D3D12MA_Allocation *allocation;
+
+    ID3D12Resource *resource;
+} GpuBufferImpl_Direct3D12;
+
 typedef enum {
     GPU_TEXTURE_ADDRESS_WRAP,
     GPU_TEXTURE_ADDRESS_MIRROR,
@@ -268,15 +287,17 @@ typedef enum {
     GPU_IMPL_VULKAN,
 } GpuImpl;
 
-GpuImpl gpuGetImpl();
+GpuImpl gpuGetImpl(void);
 
-void gpuInit();
-void gpuExit();
-void gpuBeginFrame();
-void gpuEndFrame();
+void gpuCreate(void);
+void gpuDestroy(void);
+
+void gpuBeginFrame(void);
+void gpuEndFrame(void);
+
 void gpuResize(isize width, isize height);
-void gpuPresent();
-void gpuWait();
+void gpuPresent(void);
+void gpuWait(void);
 
 typedef struct {
     union {
@@ -289,8 +310,8 @@ typedef struct {
     };
 } Vector2i;
 
-Vector2i gpuGetDimensions();
-GpuCommandBuffer* gpuGetImageCommandBuffer();
-GpuImage* gpuGetSwapChainImage();
+Vector2i          gpuGetDimensions(void);
+GpuCommandBuffer *gpuGetImageCommandBuffer(void);
+GpuImage         *gpuGetSwapChainImage(void);
 
 #endif // INCLUDE_GPU_H
