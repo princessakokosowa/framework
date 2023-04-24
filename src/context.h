@@ -72,7 +72,7 @@ void contextDestroy(void) {
 // procedures of this framework before initialising it. This could actually be written
 // somewhere in this file, but eh, no. We're using _clang_ and the so-called GNU ABI here,
 // and so I feel somehow okay about using such compiler extensions to simplify how you
-// interact with their `main' procedure.
+// interact with your `main' procedure.
 //
 // If this turns out to be annoying, it will be imminently and immediately removed.
 //     ~ princessakokosowa, 24th of April 2023
