@@ -19,7 +19,7 @@ typedef struct {
 TemporaryStorage temporary_storage;
 Allocator        temporary_allocator;
 
-void* temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+void *temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     if (mode == ALLOCATOR_MODE_ALLOCATE) {
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 

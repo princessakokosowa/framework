@@ -19,7 +19,7 @@ typedef struct {
 
 Context context;
 
-void* defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+void *defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void*,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void*,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_FREE)     return cast(void*, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
@@ -74,7 +74,7 @@ void __attribute__ ((destructor)) tidyUp(void) {
     contextDestroy();
 }
 
-void* _alloc(isize type_size_times_count) {
+void *_alloc(isize type_size_times_count) {
     void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = context.allocator->impl,
@@ -85,7 +85,7 @@ void* _alloc(isize type_size_times_count) {
     return maybe_ptr;
 }
 
-void* _resize(void *ptr, isize type_size_times_count) {
+void *_resize(void *ptr, isize type_size_times_count) {
     assert(ptr != null);
 
     void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){

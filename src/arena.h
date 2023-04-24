@@ -8,7 +8,7 @@
 
 typedef struct {
     isize count;
-    void* ptr_to_heap;
+    void *ptr_to_heap;
 } ArenaDescription;
 
 typedef struct {
@@ -17,10 +17,10 @@ typedef struct {
     isize occupied;
     isize last;
 
-    u8* ptr_to_heap;
+    u8 *ptr_to_heap;
 } Arena;
 
-void* arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+void *arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     Arena *arena = cast(Arena*, description->impl);
 
     if (mode == ALLOCATOR_MODE_ALLOCATE) {
@@ -107,7 +107,7 @@ void arenaDestroy(Arena *arena) {
     };
 }
 
-void* arenaGet(Arena *arena, isize type_size_times_count) {
+void *arenaGet(Arena *arena, isize type_size_times_count) {
     return arenaAllocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = cast(void*, arena),

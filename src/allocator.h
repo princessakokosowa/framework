@@ -63,15 +63,15 @@ typedef struct {
     void *impl;
 } AllocatorDescription;
 
-typedef void* (AllocatorProcedure)(AllocatorMode mode, AllocatorDescription *description);
+typedef void *(AllocatorProcedure)(AllocatorMode mode, AllocatorDescription *description);
 
 typedef struct {
     AllocatorProcedure *procedure;
     void               *impl;
 } Allocator;
 
-void* _alloc(isize type_size_times_count);
-void* _resize(void *ptr, isize type_size_times_count);
+void *_alloc(isize type_size_times_count);
+void *_resize(void *ptr, isize type_size_times_count);
 void  _free(void *ptr);
 
 
