@@ -214,5 +214,26 @@ int main(void) {
         contextRemindAllocators();
     }
 
+    // Here goes the default allocator.
+    {
+        isize buf_size  = sizeof(u8) * BUFFER_COUNT;
+        u8    *buf      = alloc(buf_size);
+
+        u8 strings[][BUFFER_COUNT] = {
+            "Ghost of Mother lingering death",
+            "Ghost on Mother's bed",
+            "Black strands on the pillow contour of her health",
+            "Twisted face upon the head",
+        };
+
+        for (isize i = 0; i < arrayCount(strings); i += 1) {
+            stringCopy(buf, cast(u8*, strings[i]));
+
+            printf("%s\n", buf);
+        }
+
+        free(buf_size);
+    }
+
     return 0;
 }
