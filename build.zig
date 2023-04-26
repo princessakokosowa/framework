@@ -65,7 +65,7 @@ fn findWindowsKitsAndAddItsLibraryPath(b: *std.build.Builder, exe: *std.Build.Co
     exe.addLibraryPath(windows_kits_version_libs_path);
 }
 
-pub fn build(b: *std.build.Builder) !void {
+pub fn build(b: *std.Build) !void {
     const target   = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -74,54 +74,58 @@ pub fn build(b: *std.build.Builder) !void {
         .target   = target,
         .optimize = optimize,
     });
-    exe.install();
-    exe.linkLibC();
 
-    // Apparently there is a bug regarding pkg-config (I have no idea what it is
-    // exactly), which means we are using `linkSystemLibraryName()` instead of
-    // `linkSystemLibrary()`.
-    switch (exe.target.getOsTag()) {
-        .windows => {
-            try findWindowsKitsAndAddItsLibraryPath(b, exe);
+    {
+        exe.linkLibC();
 
-            exe.linkSystemLibraryName("d3d12");
-            exe.linkSystemLibraryName("dxgi");
-            exe.linkSystemLibraryName("dxguid");
-        },
-        // Yes, this means that you cannot compile this code on any operating system
-        // other than Windows. Sorry.
-        else => unreachable,
+        // Apparently there is a bug regarding pkg-config (I have no idea what it is
+        // exactly), which means we are using `linkSystemLibraryName()` instead of
+        // `linkSystemLibrary()`.
+        switch (exe.target.getOsTag()) {
+            .windows => {
+                try findWindowsKitsAndAddItsLibraryPath(b, exe);
+
+                exe.linkSystemLibraryName("d3d12");
+                exe.linkSystemLibraryName("dxgi");
+                exe.linkSystemLibraryName("dxguid");
+            },
+            // Yes, this means that you cannot compile this code on any operating system
+            // other than Windows. Sorry.
+            else => unreachable,
+        }
+
+        exe.addIncludePath("src");
+        exe.addCSourceFiles(&.{
+            "src/main.c",
+        }, &.{
+            // Warnings and errors.
+            "-Wall",
+            "-Werror",
+            "-Wfatal-errors",
+            "-Wmissing-field-initializers",
+            "-Wno-comment",
+            "-Wno-extern-c-compat",
+            "-Wno-sequence-point",
+            "-Wno-unknown-pragmas",
+            "-Wstrict-prototypes",
+            "-Wwrite-strings",
+
+            // Code-relared things.
+            "-fno-sanitize=undefined",
+            "-fpack-struct=8",
+            // "-fstack-protector-strong",
+            "-fvisibility=hidden",
+
+            // Misc.
+            "-g",
+            "-pedantic",
+            "-std=c17",
+        });
     }
 
-    exe.addIncludePath("src");
-    exe.addCSourceFiles(&.{
-        "src/main.c",
-    }, &.{
-        // Warnings and errors.
-        "-Wall",
-        "-Werror",
-        "-Wfatal-errors",
-        "-Wmissing-field-initializers",
-        "-Wno-comment",
-        "-Wno-extern-c-compat",
-        "-Wno-sequence-point",
-        "-Wno-unknown-pragmas",
-        "-Wstrict-prototypes",
-        "-Wwrite-strings",
+    b.installArtifact(exe);
 
-        // Code-relared things.
-        "-fno-sanitize=undefined",
-        "-fpack-struct=8",
-        // "-fstack-protector-strong",
-        "-fvisibility=hidden",
-        
-        // Misc.
-        "-g",
-        "-pedantic",
-        "-std=c17",
-    });
-
-    const run_cmd = exe.run();
+    const run_cmd = b.addRunArtifact(exe);
     run_cmd.step.dependOn(b.getInstallStep());
 
     const run_step = b.step("run", "Run the app");
