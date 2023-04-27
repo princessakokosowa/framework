@@ -3,12 +3,20 @@
 
 #include "foundation.h"
 
-#define ALLOCATOR_ALIGNMENT 16
-static inline isize allocatorAlign(isize size, isize alignment) {
-    isize const _1 = size + (alignment - 1);
-    isize const _2 = ~(alignment - 1);
+#define ALLOCATOR_ALIGNMENT 8
+static inline isize align(isize size, isize alignment) {
+    isize mask = ~(alignment - 1);
+    isize _    = size + (alignment - 1
 
-    return _1 & _2;
+    return _ & mask;
+}
+
+static inline isize alignPtr(u8 *ptr, isize alignment) {
+    isize mask   = alignment - 1;
+    isize offset = cast(isize, ptr) & mask;
+    isize _      = alignment - offset;
+
+    return _ & mask;
 }
 
 // @TODO
