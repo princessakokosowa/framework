@@ -232,7 +232,7 @@ int main(void) {
             printf("%s\n", buf);
         }
 
-        free(buf_size);
+        free(buf);
     }
 
     return 0;
