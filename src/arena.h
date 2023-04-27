@@ -4,65 +4,80 @@
 #include "foundation.h"
 #include "allocator.h"
 
-#define AREA_STORAGE_DEFAULT_COUNT 32768
+#define ARENA_DEFAULT_SIZE      65536
+#define ARENA_DEFAULT_ALIGNMENT 8
 
 typedef struct {
-    isize count;
-    void *ptr_to_heap;
+    isize alignment;
+
+    bool should_overwrite;
 } ArenaDescription;
 
 typedef struct {
-    bool  has_user_provided_heap;
-    isize count;
+    isize alignment;
+
+    isize size;
     isize occupied;
     isize last;
+    u8    *ptr;
 
-    u8 *ptr_to_heap;
+    bool should_overwrite;
+
+    // @TODO
+    // Do we need that?
+    Allocator backing_allocator;
 } Arena;
 
 void *arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+    assert(description->impl != null);
     Arena *arena = cast(Arena*, description->impl);
 
-    if (mode == ALLOCATOR_MODE_ALLOCATE) {
-        assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->count);
+    switch (mode) {
+        case ALLOCATOR_MODE_FREE: {
+            return cast(void*, cast(isize, true));
+        } break;
+        case ALLOCATOR_MODE_RESIZE: {
+            assert(description->ptr_to_be_resized_or_freed != null);
 
-        isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        u8          *chunk                  = arena->ptr_to_heap + arena->occupied;
+            bool is_this_the_previous_allocation = arena->ptr + arena->last == cast(u8*, description->ptr_to_be_resized_or_freed);
+            if (is_this_the_previous_allocation == true) {
+                isize previous_allocation_size = arena->occupied - arena->last;
+                isize allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
+                isize aligned_allocation_size  = align(allocation_size, ALLOCATOR_ALIGNMENT);
 
-        arena->last     =  arena->occupied;
-        arena->occupied += aligned_allocation_size;
+                assert(arena->occupied + aligned_allocation_size <= arena->size);
 
-        return cast(void*, chunk);
-    } else if (mode == ALLOCATOR_MODE_RESIZE) {
-        assert(description->ptr_to_be_resized_or_freed != null);
+                arena->occupied += aligned_allocation_size;
 
-        bool const is_this_the_previous_allocation = arena->ptr_to_heap + arena->last == cast(u8*, description->ptr_to_be_resized_or_freed);
-        if (is_this_the_previous_allocation == true) {
-            isize const previous_allocation_size = arena->occupied - arena->last;
-            isize const allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
-            isize const aligned_allocation_size  = allocatorAlign(allocation_size, ALLOCATOR_ALIGNMENT);
+                return description->ptr_to_be_resized_or_freed;
+            }
 
-            assert(arena->occupied + aligned_allocation_size <= arena->count);
+            assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
+
+            isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
+            u8    *chunk                  = arena->ptr + arena->occupied;
 
             arena->occupied += aligned_allocation_size;
-        
-            return description->ptr_to_be_resized_or_freed;
-        }
 
-        assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->count);
+            for (isize i = 0; i < description->size_to_be_allocated_or_resized; i += 1) {
+                chunk[i] = cast(u8*, description->ptr_to_be_resized_or_freed)[i];
+            }
 
-        isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        u8          *chunk                  = arena->ptr_to_heap + arena->occupied;
+            return chunk;
+        } break;
+        case ALLOCATOR_MODE_ALLOCATE: {
+            assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
 
-        arena->occupied += aligned_allocation_size;
+            if (arena->ptr == null) arena->ptr = alloc(arena->size);
 
-        for (isize i = 0; i < description->size_to_be_allocated_or_resized; i += 1) {
-            chunk[i] = cast(u8*, description->ptr_to_be_resized_or_freed)[i];
-        }
+            isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
+            u8    *chunk                  = arena->ptr + arena->occupied;
 
-        return cast(void*, chunk);
-    } else {
-        return cast(void*, cast(i64, true));
+            arena->last     =  arena->occupied;
+            arena->occupied += aligned_allocation_size;
+
+            return chunk;
+        } break;
     }
 
     unreachable();
@@ -87,20 +102,15 @@ Arena arenaCreate(ArenaDescription *description) {
     //
     // We shall see.
     //     ~ princessakokosowa, 3rd of April 2023
-    u8   *ptr_to_heap           = null;
-    bool has_user_provided_heap = description->ptr_to_heap != null;
-    if (!has_user_provided_heap) ptr_to_heap = cast(u8*, alloc(AREA_STORAGE_DEFAULT_COUNT));
-    else                         ptr_to_heap = description->ptr_to_heap;
-    
     return (Arena) {
-        .has_user_provided_heap = has_user_provided_heap,
-        .count                  = has_user_provided_heap ? description->count : AREA_STORAGE_DEFAULT_COUNT,
-        .ptr_to_heap            = ptr_to_heap,
+        .alignment        = ARENA_DEFAULT_ALIGNMENT,
+        .size             = ARENA_DEFAULT_SIZE,
+        .should_overwrite = false,
     };
 }
 
 void arenaDestroy(Arena *arena) {
-    if (!arena->has_user_provided_heap) free(arena->ptr_to_heap);
+    if (arena->ptr != null) free(arena->ptr);
 
     *arena = (Arena) {
         0,
