@@ -10,6 +10,7 @@
 #include "context.h"
 #include "dynamic_array.h"
 #include "arena.h"
+#include "pool.h"
 #include "gpu.h"
 
 f64 timeStamp(void) {
@@ -233,6 +234,41 @@ int main(void) {
         }
 
         free(buf);
+    }
+
+    // Create some sort of memory pool (here: `Pool`).
+    {
+        Pool pool = poolCreate(&(PoolDescription) {
+            0,
+        });
+
+        // Set `Context` allocators and the default `alloc`-, `resize`- and `free`-based
+        // interface.
+        {
+            Allocator pool_allocator = poolAllocator(&pool);
+            contextSetAllocators(&pool_allocator);
+
+            isize buf_size  = sizeof(u8) * BUFFER_COUNT;
+            u8    *buf      = alloc(buf_size);
+
+            u8 strings[][BUFFER_COUNT] = {
+                "Hi,",
+                "my",
+                "name",
+                "is,",
+                "chka-chka, Slim Shady",
+            };
+
+            for (isize i = 0; i < arrayCount(strings); i += 1) {
+                stringCopy(buf, cast(u8*, strings[i]));
+
+                printf("%s\n", buf);
+            }
+
+            contextRemindAllocators();
+        }
+
+        poolDestroy(&pool);
     }
 
     return 0;
