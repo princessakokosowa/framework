@@ -23,7 +23,7 @@ void *temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
     if (mode == ALLOCATOR_MODE_ALLOCATE) {
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
-        isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
+        isize const aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
         u8          *chunk                  = temporary_storage.ptr_to_heap + temporary_storage.occupied;
 
         temporary_storage.last     =  temporary_storage.occupied;
@@ -38,7 +38,7 @@ void *temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
         if (is_this_the_previous_allocation == true) {
             isize const previous_allocation_size = temporary_storage.occupied - temporary_storage.last;
             isize const allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
-            isize const aligned_allocation_size  = allocatorAlign(allocation_size, ALLOCATOR_ALIGNMENT);
+            isize const aligned_allocation_size  = align(allocation_size, ALLOCATOR_ALIGNMENT);
 
             assert(temporary_storage.occupied + aligned_allocation_size <= TEMPORARY_STORAGE_COUNT);
             
@@ -49,7 +49,7 @@ void *temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
 
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
-        isize const aligned_allocation_size = allocatorAlign(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
+        isize const aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
         u8          *chunk                  = temporary_storage.ptr_to_heap + temporary_storage.occupied;
 
         temporary_storage.occupied += aligned_allocation_size;
