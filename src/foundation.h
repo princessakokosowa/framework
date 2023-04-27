@@ -131,7 +131,7 @@ void _panic(const char *format, ...) {
 
 void _assert(bool ok, const char *file, int line, const char *func) {
     if (!ok) {
-        _panic("Assertion failed at %s:%d in %s.", file, line, func);
+        _panic("Assertion failed at %s:%d in %s.\n", file, line, func);
     }
 }
 
@@ -140,7 +140,7 @@ void _assert(bool ok, const char *file, int line, const char *func) {
 #ifdef _DEBUG
 
     #define assert(ok)    _assert(ok, __FILE__, __LINE__, __func__)
-    #define unreachable() _panic("Unreachable at %s:%d in %s. This is a bug in the Zig compiler.", __FILE__, __LINE__, __func__)
+    #define unreachable() _panic("Unreachable at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 
 #else
 
@@ -149,6 +149,6 @@ void _assert(bool ok, const char *file, int line, const char *func) {
 
 #endif // _DEBUG
 
-#define staticAssert(ok) _Static_assert(ok, "Static assertion failed at %s:%d in %s.", __FILE__, __LINE__, __func__)
+#define staticAssert(ok) _Static_assert(ok, "Static assertion failed at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 
 #endif // INCLUDE_FOUNDATION_H
