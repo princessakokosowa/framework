@@ -237,7 +237,7 @@ int main(void) {
     }
 
     // Create some sort of memory pool (here: `Pool`).
-    {
+    /*{
         Pool pool = poolCreate(&(PoolDescription) {
             0,
         });
@@ -269,7 +269,7 @@ int main(void) {
         }
 
         poolDestroy(&pool);
-    }
+    }*/
 
     return 0;
 }
