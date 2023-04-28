@@ -104,7 +104,7 @@ fn findWindowsKitsAndAddItsIncludePath(b: *std.build.Builder, lib: *std.Build.Co
     defer b.allocator.free(windows_kits_include_full_path);
 
     // Finally, we add Windows Kits to our library paths.
-    lib.addLibraryPath(windows_kits_include_full_path);
+    lib.addIncludePath(windows_kits_include_full_path);
 }
 
 pub fn build(b: *std.Build) !void {
