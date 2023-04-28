@@ -6,7 +6,7 @@
 #define ALLOCATOR_ALIGNMENT 8
 static inline isize align(isize size, isize alignment) {
     isize mask = ~(alignment - 1);
-    isize _    = size + (alignment - 1
+    isize _    = size + (alignment - 1);
 
     return _ & mask;
 }
