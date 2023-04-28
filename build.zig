@@ -127,7 +127,7 @@ pub fn build(b: *std.Build) !void {
         switch (exe.target.getOsTag()) {
             .windows => {
                 try findWindowsKitsAndAddItsLibraryPath(b, exe);
-                try findWindowsKitsAndAddItsIncludePath(b, lib);
+                try findWindowsKitsAndAddItsIncludePath(b, exe);
 
                 exe.linkSystemLibraryName("d3d12");
                 exe.linkSystemLibraryName("dxgi");
