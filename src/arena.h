@@ -28,6 +28,8 @@ typedef struct {
     Allocator* backing_allocator;
 } Arena;
 
+// void _Arena_setAllocators() @TODO
+
 void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->impl != null);
     Arena *arena = cast(Arena*, description->impl);
@@ -74,9 +76,7 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
                 if (are_we_already_set_in_context == true) arena->backing_allocator = &default_allocator;
                 else                                       arena->backing_allocator = context.allocator;
 
-                arena->ptr = arena->backing_allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
-                    .size_to_be_allocated_or_resized = arena->size,
-                });
+                arena->ptr = allocUsingAllocator(arena->size, arena->backing_allocator);
             }
 
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
@@ -119,14 +119,7 @@ Arena Arena_create(ArenaDescription *description) {
 }
 
 void Arena_destroy(Arena *arena) {
-    if (arena->ptr != null) {
-        void *result_but_ptr = arena->backing_allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
-            .ptr_to_be_resized_or_freed = arena->ptr,
-            .impl                       = arena->backing_allocator,
-        });
-
-        assert(result_but_ptr != null);
-    }
+    if (arena->ptr != null) freeUsingAllocator(arena->ptr, arena->backing_allocator);
 
     *arena = (Arena) {
         0,

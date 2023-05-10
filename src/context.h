@@ -122,4 +122,41 @@ void _free(void *ptr) {
     (void) result_but_ptr;
 }
 
+void *_allocUsingAllocator(isize type_size_times_count, Allocator* allocator) {
+    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+        .size_to_be_allocated_or_resized = type_size_times_count,
+        .impl                            = context.allocator->impl,
+    });
+
+    assert(maybe_ptr != null);
+
+    return maybe_ptr;
+}
+
+void *_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator* allocator) {
+    assert(ptr != null);
+
+    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+        .ptr_to_be_resized_or_freed      = ptr,
+        .size_to_be_allocated_or_resized = type_size_times_count,
+        .impl                            = context.allocator->impl,
+    });
+
+    assert(maybe_ptr != null);
+
+    return maybe_ptr;
+}
+
+void _freeUsingAllocator(void *ptr, Allocator* allocator) {
+    assert(ptr != null);
+
+    void *result_but_ptr = allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
+        .ptr_to_be_resized_or_freed = ptr,
+        .impl                       = context.allocator->impl,
+    });
+
+    assert(result_but_ptr != null);
+
+    (void) result_but_ptr;
+}
 #endif // INCLUDE_CONTEXT_H
