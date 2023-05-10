@@ -25,10 +25,10 @@ typedef struct {
 
     // @TODO
     // Do we need that?
-    Allocator backing_allocator;
+    Allocator* backing_allocator;
 } Arena;
 
-void *arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->impl != null);
     Arena *arena = cast(Arena*, description->impl);
 
@@ -68,7 +68,16 @@ void *arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descript
         case ALLOCATOR_MODE_ALLOCATE: {
             assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
 
-            if (arena->ptr == null) arena->ptr = alloc(arena->size);
+            if (arena->ptr == null) {
+                bool are_we_already_set_in_context = context.allocator->impl == arena;
+
+                if (are_we_already_set_in_context == true) arena->backing_allocator = &default_allocator;
+                else                                       arena->backing_allocator = context.allocator;
+
+                arena->ptr = arena->backing_allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
+                    .size_to_be_allocated_or_resized = arena->size,
+                });
+            }
 
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
             u8    *chunk                  = arena->ptr + arena->occupied;
@@ -83,7 +92,7 @@ void *arenaAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descript
     unreachable();
 }
 
-Arena arenaCreate(ArenaDescription *description) {
+Arena Arena_create(ArenaDescription *description) {
     // @SUCCINCTNESS
     // Here's a problem, we may have allocated arena with one allocator, but want to free
     // its memory with another. This is probably due to misuse of the framework's
@@ -109,25 +118,32 @@ Arena arenaCreate(ArenaDescription *description) {
     };
 }
 
-void arenaDestroy(Arena *arena) {
-    if (arena->ptr != null) free(arena->ptr);
+void Arena_destroy(Arena *arena) {
+    if (arena->ptr != null) {
+        void *result_but_ptr = arena->backing_allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
+            .ptr_to_be_resized_or_freed = arena->ptr,
+            .impl                       = arena->backing_allocator,
+        });
+
+        assert(result_but_ptr != null);
+    }
 
     *arena = (Arena) {
         0,
     };
 }
 
-void *arenaGet(Arena *arena, isize type_size_times_count) {
-    return arenaAllocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
+void *Arena_get(Arena *arena, isize type_size_times_count) {
+    return Arena_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = cast(void*, arena),
     });
 }
 
 
-Allocator arenaAllocator(Arena *arena) {
+Allocator Arena_getAllocator(Arena *arena) {
     return (Allocator) {
-        .procedure = arenaAllocatorProcedure,
+        .procedure = Arena_allocatorProcedure,
         .impl      = cast(void*, arena),
     };
 }

@@ -45,7 +45,7 @@ typedef struct {
     Allocator backing_allocator;
 } Pool;
 
-void makeAndSwapBlocks(Pool *pool) {
+void _Pool_makeAndSwapBlocks(Pool *pool) {
     if (pool->backing_allocator.procedure == null) pool->backing_allocator = default_allocator;
 
     Block *new_block;
@@ -69,7 +69,7 @@ void makeAndSwapBlocks(Pool *pool) {
     pool->current_ptr   = pool->current_block->ptr;
 }
 
-void *poolAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->impl != null);
     Pool *pool = cast(Pool*, description->impl);
 
@@ -102,7 +102,7 @@ void *poolAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descripti
             isize aligned_ptr_position                = alignPtr(pool->current_ptr, pool->alignment);
             bool  is_there_enough_space_left_in_block = pool->left > description->size_to_be_allocated_or_resized + sizeof(Block) + aligned_ptr_position;
             if (is_there_enough_space_left_in_block == false) {
-                makeAndSwapBlocks(pool);
+                _Pool_makeAndSwapBlocks(pool);
 
                 if (pool->current_block == null) return null;
                 aligned_ptr_position = alignPtr(pool->current_ptr, pool->alignment);
@@ -121,7 +121,7 @@ void *poolAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descripti
     unreachable();
 }
 
-Pool poolCreate(PoolDescription *description) {  
+Pool Pool_create(PoolDescription *description) {
     return (Pool) {
         .bucket_size                      = POOL_DEFAULT_BUCKET_SIZE,
         .single_allocation_in_bucket_size = POOL_DEFAULT_SINGLE_ALLOCATION_IN_BUCKET_SIZE,
@@ -131,23 +131,23 @@ Pool poolCreate(PoolDescription *description) {
     };
 }
 
-void poolDestroy(Pool *pool) {
+void Pool_destroy(Pool *pool) {
     *pool = (Pool) {
         0,
     };
 }
 
-void *poolGet(Pool *pool, isize type_size_times_count) {
-    return poolAllocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
+void *Pool_get(Pool *pool, isize type_size_times_count) {
+    return Pool_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = cast(void*, pool),
     });
 }
 
 
-Allocator poolAllocator(Pool *pool) {
+Allocator Pool_getAllocator(Pool *pool) {
     return (Allocator) {
-        .procedure = poolAllocatorProcedure,
+        .procedure = Pool_allocatorProcedure,
         .impl      = cast(void*, pool),
     };
 }

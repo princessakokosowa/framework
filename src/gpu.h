@@ -23,8 +23,8 @@ typedef struct {
     void          *impl;
 } GpuBuffer;
 
-GpuBuffer gpuBufferCreate(GpuBufferDescription *description);
-void gpuBufferDestroy(GpuBuffer *arena);
+GpuBuffer GpuBuffer_create(GpuBufferDescription *description);
+void GpuBuffer_destroy(GpuBuffer *arena);
 
 // @TODO
 // Move that to a separate header file.
@@ -69,8 +69,8 @@ typedef struct {
     void              *impl;
 } GpuSampler;
 
-GpuSampler gpuSamplerCreate(GpuSamplerDescription *description);
-void gpuSamplerDestroy(GpuSampler *sampler);
+GpuSampler GpuSampler_create(GpuSamplerDescription *description);
+void GpuSampler_destroy(GpuSampler *sampler);
 
 typedef struct {
     u8 *vertex;
@@ -82,8 +82,8 @@ typedef struct {
     void *impl;
 } GpuShader;
 
-GpuShader gpuShaderCreate(GpuShaderDescription *description);
-void gpuShaderDestroy(GpuShader *shader);
+GpuShader GpuShader_create(GpuShaderDescription *description);
+void GpuShader_destroy(GpuShader *shader);
 
 typedef struct {
     u8 *path;
@@ -97,8 +97,8 @@ typedef struct {
     void  *data;
 } Image;
 
-Image imageCreate(ImageDescription *description);
-void imageDestroy(Image *Image);
+Image Image_create(ImageDescription *description);
+void Image_destroy(Image *Image);
 
 typedef enum {
     GPU_IMAGE_FORMAT_RGBA8,
@@ -122,7 +122,7 @@ typedef enum {
 typedef GpuImageLayout GpuBufferLayout;
 
 typedef enum {
-    GPU_IMAGE_USAGE_COPY,
+    GPU_IMAGE_USAGE__copy,
     GPU_IMAGE_USAGE_RENDERTARGET,
     GPU_IMAGE_USAGE_DEPTHTARGET,
     GPU_IMAGE_USAGE_STORAGE,
@@ -146,11 +146,11 @@ typedef struct {
     void           *impl;
 } GpuImage;
 
-GpuImage gpuImageCreate(GpuImageDescription *description);
-GpuImage gpuImageCreateCopy(GpuImageDescription *description);
-GpuImage gpuImageCreateCubeMap(GpuImageDescription *description);
-GpuImage gpuImageCreateFromCPU(GpuImageDescription *description);
-void gpuImageDestroy(GpuImage *GpuImage);
+GpuImage GpuImage_create(GpuImageDescription *description);
+GpuImage GpuImage_create_copy(GpuImageDescription *description);
+GpuImage GpuImage_createCubeMap(GpuImageDescription *description);
+GpuImage GpuImage_createFromCpu(GpuImageDescription *description);
+void GpuImage_destroy(GpuImage *GpuImage);
 
 typedef enum {
     GPU_PIPELINE_TYPE_GRAPHICS,
@@ -198,9 +198,8 @@ typedef struct {
     void            *impl;
 } GpuPipeline;
 
-GpuPipeline gpuPipelineGraphicsCreate(GpuPipelineDescription *description);
-GpuPipeline gpuPipelineComputeCreate(GpuPipelineDescription *description);
-void gpuPipelineDestroy(GpuPipeline *pipeline);
+GpuPipeline GpuPipeline_create(GpuPipelineDescription *description);
+void GpuPipeline_destroy(GpuPipeline *pipeline);
 // isize gpuPipelineGetDescriptor(GpuPipeline *Pipeline, u8 *name);
 
 typedef struct {
@@ -226,8 +225,8 @@ typedef struct {
     void                  *impl;
 } GpuPipelineProfiler;
 
-GpuPipelineProfiler gpuPipelineProfilerCreate(GpuPipelineProfilerDescription *description);
-void gpuPipelineProfilerDestroy(GpuPipelineProfiler *profiler);
+GpuPipelineProfiler GpuPipelineProfiler_create(GpuPipelineProfilerDescription *description);
+void GpuPipelineProfiler_destory(GpuPipelineProfiler *profiler);
 
 typedef enum {
     GPU_COMMAND_BUFFER_TYPE_GRAPHICS,
@@ -240,64 +239,64 @@ typedef struct {
     void                 *impl;
 } GpuCommandBuffer;
 
-GpuCommandBuffer GpuCommandBufferCreate(GpuCommandBufferType type);
-void GpuCommandBufferDestroy(GpuCommandBuffer *buffer);
+GpuCommandBuffer GpuCommandBuffer_create(GpuCommandBufferType type);
+void GpuCommandBuffer_destroy(GpuCommandBuffer *buffer);
 
-void GpuCommandBufferBindPipeline(GpuCommandBuffer *command_buffer, GpuPipeline *Pipeline);
+void GpuCommandBuffer_bindPipeline(GpuCommandBuffer *command_buffer, GpuPipeline *Pipeline);
 
-void GpuCommandBufferBindBuffer(      GpuCommandBuffer *command_buffer, GpuBuffer *buffer);
-void GpuCommandBufferBindRenderTarget(GpuCommandBuffer *command_buffer, GpuImage  *image, GpuImage *depth);
+void GpuCommandBuffer_bindBuffer(      GpuCommandBuffer *command_buffer, GpuBuffer *buffer);
+void GpuCommandBuffer_bindR_enderTarget(GpuCommandBuffer *command_buffer, GpuImage  *image, GpuImage *depth);
 
-void GpuCommandBufferBindShaderResource(GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuImage   *image,   isize offset);
-void GpuCommandBufferBindStorageImage(  GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuImage   *image,   isize offset);
-void GpuCommandBufferBindConstantBuffer(GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuBuffer  *buffer,  isize offset);
-void GpuCommandBufferBindStorageBuffer( GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuBuffer  *buffer,  isize offset);
-void GpuCommandBufferBindSampler(       GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuSampler *sampler, isize offset);
+void GpuCommandBuffer_bindShaderResource(GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuImage   *image,   isize off_set);
+void GpuCommandBuffer_bindStorageImage(  GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuImage   *image,   isize off_set);
+void GpuCommandBuffer_bindConstantBuffer(GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuBuffer  *buffer,  isize off_set);
+void GpuCommandBuffer_bindStorageBuffer( GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuBuffer  *buffer,  isize off_set);
+void GpuCommandBuffer_bindSampler(       GpuCommandBuffer *command_buffer, GpuPipelineType type, GpuSampler *sampler, isize off_set);
 
-void GpuCommandBufferClearColor(GpuCommandBuffer *command_buffer, GpuImage *image, f32 red,   f32 green, f32 blue, f32 alpha);
-void GpuCommandBufferClearDepth(GpuCommandBuffer *command_buffer, GpuImage *image, f32 depth, f32 stencil);
+void GpuCommandBuffer_clearColor(GpuCommandBuffer *command_buffer, GpuImage *image, f32 red,   f32 green, f32 blue, f32 alpha);
+void GpuCommandBuffer_clearDepth(GpuCommandBuffer *command_buffer, GpuImage *image, f32 depth, f32 stencil);
 
-void GpuCommandBufferSetViewport(GpuCommandBuffer *command_buffer, f32 width, f32 height, f32 x, f32 y);
+void GpuCommandBuffer_setViewport(GpuCommandBuffer *command_buffer, f32 width, f32 height, f32 x, f32 y);
 
-void GpuCommandBufferDraw(       GpuCommandBuffer *command_buffer, isize vertex_count);
-void GpuCommandBufferDrawIndexed(GpuCommandBuffer *command_buffer, isize index_count);
+void GpuCommandBuffer_draw(       GpuCommandBuffer *command_buffer, isize vertex_count);
+void GpuCommandBuffer_drawIndexed(GpuCommandBuffer *command_buffer, isize index_count);
 
-void GpuCommandBufferDispatch(GpuCommandBuffer *command_buffer, isize x, isize y, isize z);
+void GpuCommandBuffer_dispatch(GpuCommandBuffer *command_buffer, isize x, isize y, isize z);
 
-void GpuCommandBufferBeginPipelineStatistics(GpuCommandBuffer *command_buffer, GpuPipelineProfiler *profiler);
-void GpuCommandBufferEndPipelineStatistics(  GpuCommandBuffer *command_buffer, GpuPipelineProfiler *profiler);
+void GpuCommandBuffer_beginPipelineStatistics(GpuCommandBuffer *command_buffer, GpuPipelineProfiler *profiler);
+void GpuCommandBuffer_endPipelineStatistics(  GpuCommandBuffer *command_buffer, GpuPipelineProfiler *profiler);
 
-void GpuCommandBufferBufferBarrier(GpuCommandBuffer *command_buffer, GpuBuffer *buffer, GpuBufferLayout old_layout, GpuBufferLayout new_layout);
-void GpuCommandBufferImageBarrier( GpuCommandBuffer *command_buffer, GpuImage  *image,  GpuImageLayout  new_layout);
+void GpuCommandBuffer_createBufferBarrier(GpuCommandBuffer *command_buffer, GpuBuffer *buffer, GpuBufferLayout old_layout, GpuBufferLayout new_layout);
+void GpuCommandBuffer_createImageBarrier( GpuCommandBuffer *command_buffer, GpuImage  *image,  GpuImageLayout  new_layout);
 
-void GpuCommandBufferBlit(GpuCommandBuffer *command_buffer, GpuImage *source, GpuImage  *destination);
+void GpuCommandBuffer_blit(GpuCommandBuffer *command_buffer, GpuImage *source, GpuImage  *destination);
 
-void GpuCommandBufferCopyBufferToTexture(GpuCommandBuffer *command_buffer, GpuBuffer *source, GpuImage  *destination);
-void GpuCommandBufferCopyTextureToBuffer(GpuCommandBuffer *command_buffer, GpuImage  *source, GpuBuffer *destination);
-void GpuCommandBufferCopyBufferToBuffer( GpuCommandBuffer *command_buffer, GpuBuffer *source, GpuBuffer *destination);
+void GpuCommandBuffer_copyBufferToTexture(GpuCommandBuffer *command_buffer, GpuBuffer *source, GpuImage  *destination);
+void GpuCommandBuffer_copyTextureToBuffer(GpuCommandBuffer *command_buffer, GpuImage  *source, GpuBuffer *destination);
+void GpuCommandBuffer_copyBufferToBuffer( GpuCommandBuffer *command_buffer, GpuBuffer *source, GpuBuffer *destination);
 
-void GpuCommandBufferBegin(GpuCommandBuffer *command_buffer);
-void GpuCommandBufferEnd(  GpuCommandBuffer *command_buffer);
-void GpuCommandBufferFlush(GpuCommandBuffer *command_buffer);
+void GpuCommandBuffer_begin(GpuCommandBuffer *command_buffer);
+void GpuCommandBuffer_end(  GpuCommandBuffer *command_buffer);
+void GpuCommandBuffer_flush(GpuCommandBuffer *command_buffer);
 
-void GpuCommandBufferScreenshot(GpuCommandBuffer *command_buffer, GpuImage *Image, GpuBuffer *Temporary);
+void GpuCommandBuffer_makeScreenshot(GpuCommandBuffer *command_buffer, GpuImage *Image, GpuBuffer *Temporary);
 
 typedef enum {
     GPU_IMPL_DIRECT3D_12,
     GPU_IMPL_VULKAN,
 } GpuImpl;
 
-GpuImpl gpuGetImpl(void);
+GpuImpl Gpu_getImpl(void);
 
-void gpuCreate(void);
-void gpuDestroy(void);
+void Gpu_create(void);
+void Gpu_destroy(void);
 
-void gpuBeginFrame(void);
-void gpuEndFrame(void);
+void Gpu_beginFrame(void);
+void Gpu_endFrame(void);
 
-void gpuResize(isize width, isize height);
-void gpuPresent(void);
-void gpuWait(void);
+void Gpu_resize(isize width, isize height);
+void Gpu_present(void);
+void Gpu_wait(void);
 
 typedef struct {
     union {
@@ -310,8 +309,8 @@ typedef struct {
     };
 } Vector2i;
 
-Vector2i          gpuGetDimensions(void);
-GpuCommandBuffer *gpuGetImageCommandBuffer(void);
-GpuImage         *gpuGetSwapChainImage(void);
+Vector2i          Gpu_getDimensions(void);
+GpuCommandBuffer *Gpu_getImageCommandBuffer(void);
+GpuImage         *Gpu_getSwapChainImage(void);
 
 #endif // INCLUDE_GPU_H

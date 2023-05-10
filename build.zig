@@ -113,7 +113,7 @@ pub fn build(b: *std.Build) !void {
 
     const exe = b.addExecutable(.{
         .name     = "gpu",
-        .root_source_file = .{ .path = "src/main.c" },
+        // .root_source_file = .{ .path = "src/main.c" },
         .target   = target,
         .optimize = optimize,
     });
@@ -127,7 +127,7 @@ pub fn build(b: *std.Build) !void {
         switch (exe.target.getOsTag()) {
             .windows => {
                 try findWindowsKitsAndAddItsLibraryPath(b, exe);
-                try findWindowsKitsAndAddItsIncludePath(b, exe);
+                // try findWindowsKitsUserModeIncludePath(b, lib);
 
                 exe.linkSystemLibraryName("d3d12");
                 exe.linkSystemLibraryName("dxgi");
@@ -140,6 +140,7 @@ pub fn build(b: *std.Build) !void {
 
         exe.addIncludePath("src");
         exe.addCSourceFiles(&.{
+            "src/main.c",
         }, &.{
             // Warnings and errors.
             "-Wall",

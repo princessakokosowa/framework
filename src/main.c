@@ -8,7 +8,7 @@
 // Local headers.
 #include "foundation.h"
 #include "context.h"
-#include "dynamic_array.h"
+#include "array.h"
 #include "arena.h"
 #include "pool.h"
 #include "gpu.h"
@@ -84,42 +84,42 @@ void stringCopy(u8 *destination, u8 *source) {
 
 #define BUFFER_COUNT 64
 
-int main(void) {
-    Flags flags = FLAG_ENABLE_DEBUG_LAYER | FLAG_ENABLE_SHADER_DEBUGGING | FLAG_ENABLE_STABLE_POWER_STATE;
-
+void graphicsTests(void) {
+    // Flags flags = FLAG_ENABLE_DEBUG_LAYER | FLAG_ENABLE_SHADER_DEBUGGING | FLAG_ENABLE_STABLE_POWER_STATE;
+    // 
     // @TODO
     // Remove this or incorporate somewhere after I am done with DXC.
     //     - princessakokosowa, 24th of February 2023
     //
     // Enable the debug layer (and maybe a couple more things) provided by Direct3D 12.
-    {
-        bool succeeded                        = true;
-        bool should_enable_debug_layer        = cast(bool, (flags & FLAG_ENABLE_DEBUG_LAYER       ) != 0);
-        // bool const should_enable_shader_debugging   = cast(bool, (flags & FLAG_ENABLE_SHADER_DEBUGGING  ) != 0);
-        // bool const should_enable_stable_power_state = cast(bool, (flags & FLAG_ENABLE_STABLE_POWER_STATE) != 0);
+    // {
+    //     bool succeeded                        = true;
+    //     bool should_enable_debug_layer        = cast(bool, (flags & FLAG_ENABLE_DEBUG_LAYER       ) != 0);
+    //     // bool const should_enable_shader_debugging   = cast(bool, (flags & FLAG_ENABLE_SHADER_DEBUGGING  ) != 0);
+    //     // bool const should_enable_stable_power_state = cast(bool, (flags & FLAG_ENABLE_STABLE_POWER_STATE) != 0);
+    // 
+    //     ID3D12Debug1 *debug_controller = null;
+    // 
+    //     if (should_enable_debug_layer == true) {
+    //         succeeded = SUCCEEDED(D3D12GetDebugInterface(&IID_ID3D12Debug1, cast(void**, &debug_controller)));
+    //         if (succeeded == true) {
+    //             ID3D12Debug1_EnableDebugLayer(debug_controller);
+    //             ID3D12Debug1_SetEnableSynchronizedCommandQueueValidation(debug_controller, true);
+    //             ID3D12Debug1_Release(debug_controller);
+    //         }
+    //     }
+    // }
+}
 
-        ID3D12Debug1 *debug_controller = null;
-
-        if (should_enable_debug_layer == true) {
-            succeeded = SUCCEEDED(D3D12GetDebugInterface(&IID_ID3D12Debug1, cast(void**, &debug_controller)));
-            if (succeeded == true) {
-                ID3D12Debug1_EnableDebugLayer(debug_controller);
-                ID3D12Debug1_SetEnableSynchronizedCommandQueueValidation(debug_controller, true);
-                ID3D12Debug1_Release(debug_controller);
-            }
-        }
-    }
-
+void allocatorsTests(void) {
     // Create some sort of memory pool (here: `Arena`).
     {
-        Arena arena = arenaCreate(&(ArenaDescription) {
-            0,
-        });
+        Arena arena = Arena_create(&(ArenaDescription) { 0, });
 
         // Get some memory directly from it via `arenaGet`.
         {
             isize buf_size  = sizeof(u8) * BUFFER_COUNT;
-            u8    *buf      = arenaGet(&arena, buf_size);
+            u8    *buf      = Arena_get(&arena, buf_size);
 
             u8 strings[][BUFFER_COUNT] = {
                 "Hi,",
@@ -138,7 +138,7 @@ int main(void) {
 
         // Get an allocator out of it and use it to get some memory.
         {
-            Allocator arena_allocator = arenaAllocator(&arena);
+            Allocator arena_allocator = Arena_getAllocator(&arena);
 
             isize buf_size  = sizeof(u8) * BUFFER_COUNT;
             u8    *buf      = arena_allocator.procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
@@ -164,8 +164,8 @@ int main(void) {
         // Set `Context` allocators and the default `alloc`-, `resize`- and `free`-based
         // interface.
         {
-            Allocator arena_allocator = arenaAllocator(&arena);
-            contextSetAllocators(&arena_allocator);
+            Allocator arena_allocator = Arena_getAllocator(&arena);
+            Context_setAllocators(&arena_allocator);
 
             isize buf_size  = sizeof(u8) * BUFFER_COUNT;
             u8    *buf      = alloc(buf_size);
@@ -184,16 +184,16 @@ int main(void) {
                 printf("%s\n", buf);
             }
 
-            contextRemindAllocators();
+            Context_remindAllocators();
         }
 
-        arenaDestroy(&arena);
+        Arena_destroy(&arena);
     }
 
     // Set `Context` allocators, similarly to how this is done in the previous scope,
     // but using predefined temporary allocator (and its temporary storage).
     {
-        contextSetAllocators(&temporary_allocator);
+        Context_setAllocators(&temporary_allocator);
 
         isize buf_size  = sizeof(u8) * BUFFER_COUNT;
         u8    *buf      = alloc(buf_size);
@@ -211,8 +211,8 @@ int main(void) {
             printf("%s\n", buf);
         }
 
-        temporaryStorageReset();
-        contextRemindAllocators();
+        TemporaryStorage_reset();
+        Context_remindAllocators();
     }
 
     // Here goes the default allocator.
@@ -236,40 +236,104 @@ int main(void) {
         free(buf);
     }
 
-    // Create some sort of memory pool (here: `Pool`).
-    /*{
-        Pool pool = poolCreate(&(PoolDescription) {
-            0,
-        });
+    // // Create some sort of memory pool (here: `Pool`).
+    // {
+    //     Pool pool = Pool_create(&(PoolDescription) { 0, });
+    // 
+    //     // Set `Context` allocators and the default `alloc`-, `resize`- and `free`-based
+    //     // interface.
+    //     {
+    //         Allocator pool_allocator = Pool_getAllocator(&pool);
+    //         Context_setAllocators(&pool_allocator);
+    // 
+    //         isize buf_size  = sizeof(u8) * BUFFER_COUNT;
+    //         u8    *buf      = alloc(buf_size);
+    // 
+    //         u8 strings[][BUFFER_COUNT] = {
+    //             "Hi,",
+    //             "my",
+    //             "name",
+    //             "is,",
+    //             "chka-chka, Slim Shady",
+    //         };
+    // 
+    //         for (isize i = 0; i < arrayCount(strings); i += 1) {
+    //             stringCopy(buf, cast(u8*, strings[i]));
+    // 
+    //             printf("%s\n", buf);
+    //         }
+    // 
+    //         Context_remindAllocators();
+    //     }
+    // 
+    //     Pool_destroy(&pool);
+    // }
+}
 
-        // Set `Context` allocators and the default `alloc`-, `resize`- and `free`-based
-        // interface.
-        {
-            Allocator pool_allocator = poolAllocator(&pool);
-            contextSetAllocators(&pool_allocator);
+void arraysTests(void) {
+    {
+        f32 *array = null;
+        Array_add(array, 334);
+        Array_add(array, 1);
+        Array_add(array, -1);
+        Array_add(array, 0);
 
-            isize buf_size  = sizeof(u8) * BUFFER_COUNT;
-            u8    *buf      = alloc(buf_size);
+        Array_free(array);
+    }
 
-            u8 strings[][BUFFER_COUNT] = {
-                "Hi,",
-                "my",
-                "name",
-                "is,",
-                "chka-chka, Slim Shady",
-            };
+    {
+        Context_setAllocators(&temporary_allocator);
 
-            for (isize i = 0; i < arrayCount(strings); i += 1) {
-                stringCopy(buf, cast(u8*, strings[i]));
+        f32 *array = null;
+        Array_add(array, 334);
+        Array_add(array, 1);
+        Array_add(array, -1);
+        Array_add(array, 0);
 
-                printf("%s\n", buf);
-            }
+        Array_free(array);
+        TemporaryStorage_reset();
+        Context_remindAllocators();
+    }
 
-            contextRemindAllocators();
-        }
+    {
+        Arena     arena           = Arena_create(&(ArenaDescription) { 0, });
+        Allocator arena_allocator = Arena_getAllocator(&arena);
 
-        poolDestroy(&pool);
-    }*/
+        Context_setAllocators(&arena_allocator);
+
+        f32 *array = null;
+        Array_add(array, 334);
+        Array_add(array, 1);
+        Array_add(array, -1);
+        Array_add(array, 0);
+
+        Array_free(array);
+        Context_remindAllocators();
+        Arena_destroy(&arena);
+    }
+
+    {
+        Pool      pool           = Pool_create(&(PoolDescription) { 0, });
+        Allocator pool_allocator = Pool_getAllocator(&pool);
+
+        Context_setAllocators(&pool_allocator);
+
+        f32 *array = null;
+        Array_add(array, 334);
+        Array_add(array, 1);
+        Array_add(array, -1);
+        Array_add(array, 0);
+
+        Array_free(array);
+        Context_remindAllocators();
+        Pool_destroy(&pool);
+    }
+}
+
+int main(void) {
+    graphicsTests();
+    allocatorsTests();
+    arraysTests();
 
     return 0;
 }

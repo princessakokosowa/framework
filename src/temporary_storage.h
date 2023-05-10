@@ -19,7 +19,7 @@ typedef struct {
 TemporaryStorage temporary_storage;
 Allocator        temporary_allocator;
 
-void *temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     if (mode == ALLOCATOR_MODE_ALLOCATE) {
         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= TEMPORARY_STORAGE_COUNT);
 
@@ -66,7 +66,7 @@ void *temporaryStorageAllocatorProcedure(AllocatorMode mode, AllocatorDescriptio
     unreachable();
 }
 
-void temporaryStorageCreate(void) {
+void TemporaryStorage_create(void) {
     isize temporary_storage_size  = sizeof(u8) * TEMPORARY_STORAGE_COUNT;
 
     temporary_storage = (TemporaryStorage) {
@@ -74,12 +74,12 @@ void temporaryStorageCreate(void) {
     };
 
     temporary_allocator = (Allocator) {
-        .procedure = &temporaryStorageAllocatorProcedure,
+        .procedure = &TemporaryStorage_allocatorProcedure,
         // .impl      = cast(void*, &temporary_storage),
     };
 }
 
-void temporaryStorageDestroy(void) {
+void TemporaryStorage_destroy(void) {
     temporary_allocator = (Allocator) {
         0,
     };
@@ -91,7 +91,7 @@ void temporaryStorageDestroy(void) {
     };
 }
 
-void temporaryStorageReset(void) {
+void TemporaryStorage_reset(void) {
     temporary_storage.last     = 0;
     temporary_storage.occupied = 0;
 }

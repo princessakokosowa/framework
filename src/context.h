@@ -19,7 +19,7 @@ typedef struct {
 
 Context context;
 
-void *defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+void *Default_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void*,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void*,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_FREE)     return cast(void*, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
@@ -28,38 +28,38 @@ void *defaultAllocatorProcedure(AllocatorMode mode, AllocatorDescription *descri
 }
 
 Allocator default_allocator = (Allocator) {
-    .procedure = &defaultAllocatorProcedure,
+    .procedure = &Default_allocatorProcedure,
 };
 
-void contextCreate(void) {
+void Context_create(void) {
     context = (Context) {
         .allocator = &default_allocator,
     };
 
-    temporaryStorageCreate();
+    TemporaryStorage_create();
 }
 
-void contextRememberAllocators(void) {
+void Context_rememberAllocators(void) {
     assert(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
 
     context.remembered_list[context.remembered_count] = context.allocator;
     context.remembered_count                          += 1;
 }
 
-void contextSetAllocators(Allocator *allocator) {
-    contextRememberAllocators();
+void Context_setAllocators(Allocator *allocator) {
+    Context_rememberAllocators();
 
     context.allocator = allocator;
 }
 
-void contextRemindAllocators(void) {
+void Context_remindAllocators(void) {
     context.remembered_count                          -= 1;
     context.allocator                                 = context.remembered_list[context.remembered_count];
     context.remembered_list[context.remembered_count] = null;
 }
 
-void contextDestroy(void) {
-    temporaryStorageDestroy();
+void Context_destroy(void) {
+    TemporaryStorage_destroy();
 
     context = (Context) {
         0,
@@ -77,11 +77,11 @@ void contextDestroy(void) {
 // If this turns out to be annoying, it will be imminently and immediately removed.
 //     ~ princessakokosowa, 24th of April 2023
 void __attribute__ ((constructor)) preload(void) {
-    contextCreate();
+    Context_create();
 }
 
 void __attribute__ ((destructor)) tidyUp(void) {
-    contextDestroy();
+    Context_destroy();
 }
 
 void *_alloc(isize type_size_times_count) {
