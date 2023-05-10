@@ -302,31 +302,23 @@ void arraysTests(void) {
         Context_setAllocators(&arena_allocator);
 
         f32 *array = null;
-        Array_add(array, 334);
-        Array_add(array, 1);
-        Array_add(array, -1);
-        Array_add(array, 0);
+        Array_add(array, 334.f);
+        Array_add(array, 1.f);
+        Array_add(array, -1.f);
+        Array_add(array, 0.f);
+        Array_add(array, 1337.f);
+        Array_add(array, 0xfade);
+        Array_add(array, 0xdeaf);
+        Array_add(array, 0xcafe);
+        Array_add(array, 0xbabe);
+
+        for (isize i = 0; i < Array_count(array); i += 1) {
+            printf("%5.1f\n", array[i]);
+        }
 
         Array_free(array);
         Context_remindAllocators();
         Arena_destroy(&arena);
-    }
-
-    {
-        Pool      pool           = Pool_create(&(PoolDescription) { 0, });
-        Allocator pool_allocator = Pool_getAllocator(&pool);
-
-        Context_setAllocators(&pool_allocator);
-
-        f32 *array = null;
-        Array_add(array, 334);
-        Array_add(array, 1);
-        Array_add(array, -1);
-        Array_add(array, 0);
-
-        Array_free(array);
-        Context_remindAllocators();
-        Pool_destroy(&pool);
     }
 }
 
