@@ -235,39 +235,6 @@ void allocatorsTests(void) {
 
         free(buf);
     }
-
-    // // Create some sort of memory pool (here: `Pool`).
-    // {
-    //     Pool pool = Pool_create(&(PoolDescription) { 0, });
-    // 
-    //     // Set `Context` allocators and the default `alloc`-, `resize`- and `free`-based
-    //     // interface.
-    //     {
-    //         Allocator pool_allocator = Pool_getAllocator(&pool);
-    //         Context_setAllocators(&pool_allocator);
-    // 
-    //         isize buf_size  = sizeof(u8) * BUFFER_COUNT;
-    //         u8    *buf      = alloc(buf_size);
-    // 
-    //         u8 strings[][BUFFER_COUNT] = {
-    //             "Hi,",
-    //             "my",
-    //             "name",
-    //             "is,",
-    //             "chka-chka, Slim Shady",
-    //         };
-    // 
-    //         for (isize i = 0; i < arrayCount(strings); i += 1) {
-    //             stringCopy(buf, cast(u8*, strings[i]));
-    // 
-    //             printf("%s\n", buf);
-    //         }
-    // 
-    //         Context_remindAllocators();
-    //     }
-    // 
-    //     Pool_destroy(&pool);
-    // }
 }
 
 void arraysTests(void) {

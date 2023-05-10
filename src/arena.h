@@ -23,12 +23,12 @@ typedef struct {
 
     bool should_overwrite;
 
-    // @TODO
-    // Do we need that?
-    Allocator* backing_allocator;
+    Allocator *backing_allocator;
 } Arena;
 
-// void _Arena_setAllocators() @TODO
+void __Arena_setAllocators(Arena *arena, Allocator *allocator) {
+    arena->backing_allocator = allocator;
+}
 
 void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->impl != null);
@@ -72,12 +72,11 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
 
             if (arena->ptr == null) {
                 bool are_we_already_set_in_context = context.allocator->impl == arena;
-
-                if (are_we_already_set_in_context == true) arena->backing_allocator = &default_allocator;
-                else                                       arena->backing_allocator = context.allocator;
-
-                arena->ptr = allocUsingAllocator(arena->size, arena->backing_allocator);
+                if (are_we_already_set_in_context == true) __Arena_setAllocators(arena, &default_allocator);
+                else                                       __Arena_setAllocators(arena, context.allocator);
             }
+
+            if (arena->ptr == null) arena->ptr = allocUsingAllocator(arena->size, arena->backing_allocator);
 
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
             u8    *chunk                  = arena->ptr + arena->occupied;
@@ -93,24 +92,6 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
 }
 
 Arena Arena_create(ArenaDescription *description) {
-    // @SUCCINCTNESS
-    // Here's a problem, we may have allocated arena with one allocator, but want to free
-    // its memory with another. This is probably due to misuse of the framework's
-    // features, but either way, we might want to be proof of such foolishness and
-    // therefore introduce a mechanism to prevent users from doing such stupid things.
-    //
-    // Similar to how we set allocators and remember them in `Context`, we could also try
-    // to remember allocators at the time this allocator (or any other thing?) is created.
-    // That way, when we destroy an object, we can check that the allocator we are about
-    // to destroy is actually the same allocator we used to allocate the object in the
-    // first place.
-    //
-    // This may add some overhead to our program, but well, allocators are usually not in
-    // the hot paths of programs (and even if they were, they are globally accessible
-    // due to the architecture of this framework.
-    //
-    // We shall see.
-    //     ~ princessakokosowa, 3rd of April 2023
     return (Arena) {
         .alignment        = ARENA_DEFAULT_ALIGNMENT,
         .size             = ARENA_DEFAULT_SIZE,

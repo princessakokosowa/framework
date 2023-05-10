@@ -37,6 +37,7 @@ void Context_create(void) {
     };
 
     TemporaryStorage_create();
+    TemporaryStorage_setAllocators(&default_allocator);
 }
 
 void Context_rememberAllocators(void) {
@@ -122,7 +123,7 @@ void _free(void *ptr) {
     (void) result_but_ptr;
 }
 
-void *_allocUsingAllocator(isize type_size_times_count, Allocator* allocator) {
+void *_allocUsingAllocator(isize type_size_times_count, Allocator *allocator) {
     void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = context.allocator->impl,
@@ -133,7 +134,7 @@ void *_allocUsingAllocator(isize type_size_times_count, Allocator* allocator) {
     return maybe_ptr;
 }
 
-void *_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator* allocator) {
+void *_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator) {
     assert(ptr != null);
 
     void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
@@ -147,7 +148,7 @@ void *_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator* a
     return maybe_ptr;
 }
 
-void _freeUsingAllocator(void *ptr, Allocator* allocator) {
+void _freeUsingAllocator(void *ptr, Allocator *allocator) {
     assert(ptr != null);
 
     void *result_but_ptr = allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
@@ -159,4 +160,5 @@ void _freeUsingAllocator(void *ptr, Allocator* allocator) {
 
     (void) result_but_ptr;
 }
+
 #endif // INCLUDE_CONTEXT_H
