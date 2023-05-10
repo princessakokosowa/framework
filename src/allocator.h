@@ -86,9 +86,9 @@ void *_allocUsingAllocator(isize type_size_times_count, Allocator *allocator);
 void *_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
 void  _freeUsingAllocator(void *ptr, Allocator *allocator);
 
-#define alloc               _alloc
-#define resize              _resize
-#define free                _free
+#define alloc                _alloc
+#define resize               _resize
+#define free                 _free
 
 #define allocUsingAllocator  _allocUsingAllocator
 #define resizeUsingAllocator _resizeUsingAllocator

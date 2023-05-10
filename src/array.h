@@ -11,10 +11,9 @@ typedef struct {
     isize capacity;
 } ArrayImpl;
 
-#define Array_getImpl(array)                                 \
-    (cast(ArrayImpl*, (array)) - 1)
+#define Array_getImpl(array) (cast(ArrayImpl*, (array)) - 1)
 
-#define ArrayImpl_getArray(impl)                             \
+#define ArrayImpl_getArray(impl)    \
     (                 (impl)   + 1)
 
 void *Array_maybeGrow(void *array, unsigned int size_of_backing_type, unsigned int values_count) {
@@ -43,15 +42,15 @@ void *Array_maybeGrow(void *array, unsigned int size_of_backing_type, unsigned i
     return ArrayImpl_getArray(impl);
 }
 
-#define Array_add(array, value)                              \
-    (array) = Array_maybeGrow((array), sizeof(*(array)), 1); \
-    array[Array_getImpl((array))->count] = (value);          \
-    Array_getImpl((array))->count += 1
+#define Array_add(array, value)                                                             \
+    (array)                                = Array_maybeGrow((array), sizeof(*(array)), 1); \
+    (array)[Array_getImpl((array))->count] = (value);                                       \
+    Array_getImpl((array))->count          += 1
 
-#define Array_count(array)                                   \
+#define Array_count(array)                                                                  \
     Array_getImpl((array))->count
 
-#define Array_capacity(array)                                \
+#define Array_capacity(array)                                                               \
     Array_getImpl((array))->capacity
 
 void Array_free(void *array) {
