@@ -9,6 +9,7 @@
 
 typedef struct {
     isize alignment;
+    isize size;
 
     bool should_overwrite;
 } ArenaDescription;

@@ -279,6 +279,12 @@ void arraysTests(void) {
         Array_add(array, 0xcafe);
         Array_add(array, 0xbabe);
 
+        for (f32 i = 0.f; i < 127.f; i += 1.f) {
+            Array_add(array, i);
+        }
+
+        printf("%5.1f ", Array_pop(array));
+
         for (isize i = 0; i < Array_count(array); i += 1) {
             printf("%5.1f\n", array[i]);
         }
