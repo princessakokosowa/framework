@@ -88,13 +88,10 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     Array_getImpl((array))->count -= 1;                                     \
     (array)[(index)]              = (array)[Array_getImpl((array))->count];
 
-// @TODO
-// Replace some of its parts with `Array_removeAt`.
 #define Array_remove(array, value)                                                  \
     for (isize __index = 0; __index < Array_count((array)); __index += 1) {         \
         if ((value) == (array)[__index]) {                                          \
-            Array_getImpl((array))->count -= 1;                                     \
-            (array)[__index]              = (array)[Array_getImpl((array))->count]; \
+            Array_removeAt((array), (__index));                                     \
         }                                                                           \
     }
 
