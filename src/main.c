@@ -293,7 +293,10 @@ void arraysTests(void) {
         }
 
         Array_remove(array, 0.f);
-        Array_removeAt(array, 1);
+        Array_removeAt(array, 0);
+
+        Array_removeOrdered(array, 1.f);
+        Array_removeAtOrdered(array, 33);
 
         Array_free(array);
         Context_remindAllocators();
