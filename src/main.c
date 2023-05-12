@@ -298,6 +298,23 @@ void arraysTests(void) {
         Array_removeOrdered(array, 1.f);
         Array_removeAtOrdered(array, 33);
 
+        Array_resize(array, 96);
+        Array_resize(array, 384);
+
+        Array_free(array);
+        Context_remindAllocators();
+        Arena_destroy(&arena);
+    }
+
+    {
+        Arena     arena           = Arena_create(&(ArenaDescription) { 0, });
+        Allocator arena_allocator = Arena_getAllocator(&arena);
+
+        Context_setAllocators(&arena_allocator);
+
+        f32 *array = null;
+        Array_reserve(array, 384);
+
         Array_free(array);
         Context_remindAllocators();
         Arena_destroy(&arena);

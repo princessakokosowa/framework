@@ -56,11 +56,18 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
         impl->capacity = capacity_to_be_set;
     } else {
         impl           = resize(Array_getImpl(array), sizeof(ArrayImpl) + size_of_backing_type * capacity_to_be_set);
+        impl->count    = Array_count(array) + count_added;
         impl->capacity = capacity_to_be_set;
     }
 
     return ArrayImpl_getArray(impl);
 }
+
+#define Array_reserve(array, capacity_to_be_set)                                   \
+    (array) = Array_maybeGrow((array), sizeof(*(array)), 0 , (capacity_to_be_set))
+
+#define Array_resize(array, count_to_be_set)                                                                                 \
+    (array) = Array_maybeGrow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0); \
 
 #define Array_addAt(array, value, index)                                              \
     assert((index) >= 0);                                                             \
