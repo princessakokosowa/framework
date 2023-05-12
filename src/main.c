@@ -292,11 +292,11 @@ void arraysTests(void) {
             printf("%5.1f\n", array[i]);
         }
 
-        Array_remove(array, 0.f);
-        Array_removeAt(array, 0);
+        Array_removeByValue(array, 0.f);
+        Array_removeAtIndex(array, 0);
 
-        Array_removeOrdered(array, 1.f);
-        Array_removeAtOrdered(array, 33);
+        Array_removeByValueOrdered(array, 1.f);
+        Array_removeAtIndexOrdered(array, 33);
 
         Array_resize(array, 96);
         Array_resize(array, 384);

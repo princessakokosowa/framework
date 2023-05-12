@@ -91,21 +91,30 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     (array)[Array_getImpl((array))->count] = (value);                                          \
     Array_getImpl((array))->count          += 1
 
-#define Array_removeAt(array, index)                                        \
+#define Array_removeAtIndex(array, index)                                   \
     assert((index) >= 0);                                                   \
     assert((index) < Array_count((array)));                                 \
                                                                             \
     Array_getImpl((array))->count -= 1;                                     \
     (array)[(index)]              = (array)[Array_getImpl((array))->count];
 
-#define Array_remove(array, value)                                                  \
-    for (isize __index = 0; __index < Array_count((array)); __index += 1) {         \
-        if ((value) == (array)[__index]) {                                          \
-            Array_removeAt((array), __index);                                       \
-        }                                                                           \
+#define Array_removeByValue(array, value)                                   \
+    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
+        if ((value) == (array)[__index]) {                                  \
+            Array_removeAtIndex((array), __index);                          \
+                                                                            \
+            break;                                                          \
+        }                                                                   \
     }
 
-#define Array_removeAtOrdered(array, index)                                           \
+#define Array_removeAllByValue(array, value)                                \
+    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
+        if ((value) == (array)[__index]) {                                  \
+            Array_removeAtIndex((array), __index);                          \
+        }                                                                   \
+    }
+
+#define Array_removeAtIndexOrdered(array, index)                                      \
     assert((index) >= 0);                                                             \
     assert((index) < Array_count((array)));                                           \
                                                                                       \
@@ -115,11 +124,20 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
                                                                                       \
     Array_getImpl((array))->count -= 1;
 
-#define Array_removeOrdered(array, value)                                           \
-    for (isize __index = 0; __index < Array_count((array)); __index += 1) {         \
-        if ((value) == (array)[__index]) {                                          \
-            Array_removeAtOrdered((array), __index);                                \
-        }                                                                           \
+#define Array_removeByValueOrdered(array, value)                            \
+    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
+        if ((value) == (array)[__index]) {                                  \
+            Array_removeAtIndexOrdered((array), __index);                   \
+                                                                            \
+            break;                                                          \
+        }                                                                   \
+    }
+
+#define Array_removeAllByValueOrdered(array, value)                         \
+    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
+        if ((value) == (array)[__index]) {                                  \
+            Array_removeAtIndexOrdered((array), __index);                   \
+        }                                                                   \
     }
 
 #define Array_push(array, value) \
