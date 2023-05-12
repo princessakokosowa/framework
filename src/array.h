@@ -62,10 +62,44 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     return ArrayImpl_getArray(impl);
 }
 
+#define Array_addAt(array, value, index)                                              \
+    assert((index) >= 0);                                                             \
+    assert((index) <= Array_count((array)));                                          \
+                                                                                      \
+    (array)                       = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
+    Array_getImpl((array))->count += 1;                                               \
+                                                                                      \
+    {                                                                                 \
+        isize __index = Array_count((array));                                         \
+        while (__index > (index)) {                                                   \
+            (array)[__index] = (array)[__index - 1];                                  \
+            __index          -= 1;                                                    \
+        }                                                                             \
+    }                                                                                 \
+                                                                                      \
+    (array)[(index)] = (value)
+
 #define Array_add(array, value)                                                                \
     (array)                                = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
     (array)[Array_getImpl((array))->count] = (value);                                          \
     Array_getImpl((array))->count          += 1
+
+#define Array_removeAt(array, index)                                        \
+    Array_getImpl((array))->count -= 1;                                     \
+    (array)[(index)]              = (array)[Array_getImpl((array))->count];
+
+// @TODO
+// Replace some of its parts with `Array_removeAt`.
+#define Array_remove(array, value)                                                  \
+    for (isize __index = 0; __index < Array_count((array)); __index += 1) {         \
+        if ((value) == (array)[__index]) {                                          \
+            Array_getImpl((array))->count -= 1;                                     \
+            (array)[__index]              = (array)[Array_getImpl((array))->count]; \
+        }                                                                           \
+    }
+
+#define Array_push(array, value) \
+    Array_add((array), (value))
 
 #define Array_pop(array)                       \
     (                                          \

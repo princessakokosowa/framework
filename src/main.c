@@ -278,6 +278,7 @@ void arraysTests(void) {
         Array_add(array, 0xdeaf);
         Array_add(array, 0xcafe);
         Array_add(array, 0xbabe);
+        Array_add(array, 0.f);
 
         for (f32 i = 0.f; i < 127.f; i += 1.f) {
             Array_add(array, i);
@@ -285,9 +286,14 @@ void arraysTests(void) {
 
         printf("%5.1f ", Array_pop(array));
 
+        Array_addAt(array, 666.f, 44);
+
         for (isize i = 0; i < Array_count(array); i += 1) {
             printf("%5.1f\n", array[i]);
         }
+
+        Array_remove(array, 0.f);
+        Array_removeAt(array, 1);
 
         Array_free(array);
         Context_remindAllocators();
