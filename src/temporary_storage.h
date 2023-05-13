@@ -67,9 +67,7 @@ void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescripti
         case ALLOCATOR_MODE_ALLOCATE: {
             assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
 
-            if (temporary_storage.ptr == null) {
-                temporary_storage.ptr = allocUsingAllocator(temporary_storage.size, temporary_storage.backing_allocator);
-            }
+            if (temporary_storage.ptr == null) temporary_storage.ptr = allocUsingAllocator(temporary_storage.size, temporary_storage.backing_allocator);
 
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
             u8    *chunk                  = temporary_storage.ptr + temporary_storage.occupied;

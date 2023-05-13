@@ -56,7 +56,6 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
         impl->capacity = capacity_to_be_set;
     } else {
         impl           = resize(Array_getImpl(array), sizeof(ArrayImpl) + size_of_backing_type * capacity_to_be_set);
-        impl->count    = Array_count(array) + count_added;
         impl->capacity = capacity_to_be_set;
     }
 
@@ -66,8 +65,9 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
 #define Array_reserve(array, capacity_to_be_set)                                   \
     (array) = Array_maybeGrow((array), sizeof(*(array)), 0 , (capacity_to_be_set))
 
-#define Array_resize(array, count_to_be_set)                                                           \
-    (array) = Array_maybeGrow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0); \
+#define Array_resize(array, count_to_be_set)                                                                                \
+    (array) = Array_maybeGrow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                      \
+    if (Array_count((array)) < (count_to_be_set)) Array_getImpl((array))->count += (count_to_be_set) - Array_count((array))
 
 #define Array_addAt(array, value, index)                                              \
     assert((index) >= 0);                                                             \
@@ -102,7 +102,6 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
         if ((value) == (array)[__index]) {                                  \
             Array_removeAtIndex((array), __index);                          \
-                                                                            \
             break;                                                          \
         }                                                                   \
     }
@@ -111,6 +110,7 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
         if ((value) == (array)[__index]) {                                  \
             Array_removeAtIndex((array), __index);                          \
+            __index -= 1;                                                   \
         }                                                                   \
     }
 
@@ -128,7 +128,6 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
         if ((value) == (array)[__index]) {                                  \
             Array_removeAtIndexOrdered((array), __index);                   \
-                                                                            \
             break;                                                          \
         }                                                                   \
     }
@@ -137,6 +136,7 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
         if ((value) == (array)[__index]) {                                  \
             Array_removeAtIndexOrdered((array), __index);                   \
+            __index -= 1;                                                   \
         }                                                                   \
     }
 

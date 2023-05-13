@@ -281,16 +281,15 @@ void arraysTests(void) {
         Array_add(array, 0.f);
 
         for (f32 i = 0.f; i < 127.f; i += 1.f) {
-            Array_add(array, i);
+            Array_add(array, cast(isize, i) % 2
+                ? i
+                : 0.f
+            );
         }
 
         printf("%5.1f ", Array_pop(array));
 
         Array_addAt(array, 666.f, 44);
-
-        for (isize i = 0; i < Array_count(array); i += 1) {
-            printf("%5.1f\n", array[i]);
-        }
 
         Array_removeByValue(array, 0.f);
         Array_removeAtIndex(array, 0);
@@ -300,6 +299,13 @@ void arraysTests(void) {
 
         Array_resize(array, 96);
         Array_resize(array, 384);
+
+        Array_removeAllByValue(array, 0.f);
+        // Array_removeAllByValueOrdered(array, 0.f);
+
+        for (isize i = 0; i < Array_count(array); i += 1) {
+            printf("%5.1f\n", array[i]);
+        }
 
         Array_free(array);
         Context_remindAllocators();

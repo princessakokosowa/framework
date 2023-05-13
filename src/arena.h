@@ -71,7 +71,7 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
         case ALLOCATOR_MODE_ALLOCATE: {
             assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
 
-            if (arena->ptr == null) {
+            if (arena->backing_allocator == null) {
                 bool are_we_already_set_in_context = context.allocator->impl == arena;
                 if (are_we_already_set_in_context == true) __Arena_setAllocators(arena, &default_allocator);
                 else                                       __Arena_setAllocators(arena, context.allocator);
