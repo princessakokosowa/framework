@@ -280,31 +280,80 @@ void arraysTests(void) {
         Array_add(array, 0xbabe);
         Array_add(array, 0.f);
 
-        for (f32 i = 0.f; i < 127.f; i += 1.f) {
-            Array_add(array, cast(isize, i) % 2
-                ? i
-                : 0.f
-            );
+        {
+            for (f32 i = 0.f; i < 128.f; i += 1.f) {
+                if      (cast(isize, i) % 2) Array_add(array, 0.f);
+                else if (cast(isize, i) % 3) Array_add(array, 1.f);
+                else                         Array_add(array, i);
+            }
+            printf("Filled in the array with values!\n");
+
+            forEach(array) {
+                if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
+                else                             printf("%5.1f\n", array[i]);
+            }
         }
 
-        printf("%5.1f ", Array_pop(array));
+        {
+            f32 popped_value = Array_pop(array);
+            printf("Popped one item, its value is %5.1f!\n", popped_value);
 
-        Array_addAt(array, 666.f, 44);
+            Array_addAt(array, 666.f, 44);
+            printf("Inserted one item at 44, its value is %5.1f!\n", array[44]);
 
-        Array_removeByValue(array, 0.f);
-        Array_removeAtIndex(array, 0);
+            forEach(array) {
+                if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
+                else                             printf("%5.1f\n", array[i]);
+            }
+        }
 
-        Array_removeByValueOrdered(array, 1.f);
-        Array_removeAtIndexOrdered(array, 33);
 
-        Array_resize(array, 96);
-        Array_resize(array, 384);
+        {
+            Array_removeByValue(array, 0.f);
+            Array_removeAtIndex(array, 0);
+            printf("Removed 0.f by value and a value at 0th index, but in a unordered way and therefore, the order has not been perserved!\n");
 
-        Array_removeAllByValue(array, 0.f);
-        // Array_removeAllByValueOrdered(array, 0.f);
+            forEach(array) {
+                if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
+                else                             printf("%5.1f\n", array[i]);
+            }
+        }
 
-        for (isize i = 0; i < Array_count(array); i += 1) {
-            printf("%5.1f\n", array[i]);
+        {
+            Array_removeByValueOrdered(array, 1.f);
+            Array_removeAtIndexOrdered(array, 33);
+            printf("Removed 1.f by value and a value at 33rd index, but this time in an ordered way!\n");
+
+            forEach(array) {
+                if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
+                else                             printf("%5.1f\n", array[i]);
+            }
+        }
+
+        {
+            Array_resize(array, 96);
+            printf("Tried to resize the array so that it has 96 items, but nothing happened (and that's expected!), the capacity still is %lli\n", Array_capacity(array));
+
+            Array_resize(array, 261);
+            printf("Tried to resize the array so that it has 224 items and that's alright, the capacity is %lli\n", Array_capacity(array));
+
+            forEach(array) {
+                if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
+                else                             printf("%5.1f\n", array[i]);
+            }
+        }
+
+        {
+            Array_removeAllByValue(array, 0.f);
+            printf("Removed all 0.f by value, the count is %lli\n", Array_count(array));
+
+            Array_removeAllByValueOrdered(array, 1.f);
+            printf("Removed all 1.f by value, the count is %lli\n", Array_count(array));
+
+            forEach(array) {
+                if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
+                else                             printf("%5.1f\n", array[i]);
+            }
         }
 
         Array_free(array);

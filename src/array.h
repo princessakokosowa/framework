@@ -15,6 +15,7 @@
 
 #include "foundation.h"
 #include "allocator.h"
+#include "memory.h"
 
 #define ARRAY_DEFAULT_CAPACITY 4
 
@@ -22,6 +23,9 @@ typedef struct {
     isize count;
     isize capacity;
 } ArrayImpl;
+
+#define forEach(array)                                                                                                 \
+    for (isize i = 0; i < Array_count((array)); i += 1) \
 
 #define Array_getImpl(array)     (cast(ArrayImpl*, (array)) - 1)
 #define ArrayImpl_getArray(impl) (                 (impl)   + 1)
@@ -65,80 +69,96 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
 #define Array_reserve(array, capacity_to_be_set)                                   \
     (array) = Array_maybeGrow((array), sizeof(*(array)), 0 , (capacity_to_be_set))
 
-#define Array_resize(array, count_to_be_set)                                                                                \
-    (array) = Array_maybeGrow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                      \
-    if (Array_count((array)) < (count_to_be_set)) Array_getImpl((array))->count += (count_to_be_set) - Array_count((array))
+#define Array_resize(array, count_to_be_set)                                                                                     \
+    do {                                                                                                                         \
+        (array) = Array_maybeGrow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                       \
+        if (Array_count((array)) < (count_to_be_set)) Array_getImpl((array))->count += (count_to_be_set) - Array_count((array)); \
+    } while (false)
 
-#define Array_addAt(array, value, index)                                              \
-    assert((index) >= 0);                                                             \
-    assert((index) <= Array_count((array)));                                          \
-                                                                                      \
-    (array)                       = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
-    Array_getImpl((array))->count += 1;                                               \
-                                                                                      \
-    {                                                                                 \
-        isize __index = Array_count((array));                                         \
-        while (__index > (index)) {                                                   \
-            (array)[__index] = (array)[__index - 1];                                  \
-            __index          -= 1;                                                    \
-        }                                                                             \
-    }                                                                                 \
-                                                                                      \
-    (array)[(index)] = (value)
+#define Array_addAt(array, value, index)                                                  \
+    do {                                                                                  \
+        assert((index) >= 0);                                                             \
+        assert((index) <= Array_count((array)));                                          \
+                                                                                          \
+        (array)                       = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
+        Array_getImpl((array))->count += 1;                                               \
+                                                                                          \
+        Memory_move(                                                                      \
+            (array) + (index) + 1,                                                        \
+            (array) + (index),                                                            \
+            (Array_count((array)) - (index)) * sizeof(*(array))                           \
+        );                                                                                \
+                                                                                          \
+        (array)[(index)] = (value);                                                       \
+    } while (false)
 
-#define Array_add(array, value)                                                                \
-    (array)                                = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
-    (array)[Array_getImpl((array))->count] = (value);                                          \
-    Array_getImpl((array))->count          += 1
+#define Array_add(array, value)                                                                    \
+    do {                                                                                           \
+        (array)                                = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
+        (array)[Array_getImpl((array))->count] = (value);                                          \
+        Array_getImpl((array))->count          += 1;                                               \
+    } while (false)
 
-#define Array_removeAtIndex(array, index)                                   \
-    assert((index) >= 0);                                                   \
-    assert((index) < Array_count((array)));                                 \
-                                                                            \
-    Array_getImpl((array))->count -= 1;                                     \
-    (array)[(index)]              = (array)[Array_getImpl((array))->count];
+#define Array_removeAtIndex(array, index)                                       \
+    do {                                                                        \
+        assert((index) >= 0);                                                   \
+        assert((index) < Array_count((array)));                                 \
+                                                                                \
+        Array_getImpl((array))->count -= 1;                                     \
+        (array)[(index)]              = (array)[Array_getImpl((array))->count]; \
+    } while (false)
 
-#define Array_removeByValue(array, value)                                   \
-    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
-        if ((value) == (array)[__index]) {                                  \
-            Array_removeAtIndex((array), __index);                          \
-            break;                                                          \
-        }                                                                   \
-    }
+#define Array_removeAtIndexOrdered(array, index)                \
+    do {                                                        \
+        assert((index) >= 0);                                   \
+        assert((index) < Array_count((array)));                 \
+                                                                \
+        Memory_move(                                            \
+            (array) + (index),                                  \
+            (array) + (index) + 1,                              \
+            (Array_count((array)) - (index)) * sizeof(*(array)) \
+        );                                                      \
+                                                                \
+        Array_getImpl((array))->count -= 1;                     \
+    } while (false)
 
-#define Array_removeAllByValue(array, value)                                \
-    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
-        if ((value) == (array)[__index]) {                                  \
-            Array_removeAtIndex((array), __index);                          \
-            __index -= 1;                                                   \
-        }                                                                   \
-    }
+#define Array_removeByValue(array, value)                                                      \
+    do {                                                                                       \
+        for (isize _Array_index = 0; _Array_index < Array_count((array)); _Array_index += 1) { \
+            if ((value) == (array)[_Array_index]) {                                            \
+                Array_removeAtIndex((array), _Array_index);                                    \
+                break;                                                                         \
+            }                                                                                  \
+        }                                                                                      \
+    } while (false)
 
-#define Array_removeAtIndexOrdered(array, index)                                      \
-    assert((index) >= 0);                                                             \
-    assert((index) < Array_count((array)));                                           \
-                                                                                      \
-    for (isize __jndex = (index); __jndex < Array_count((array)) - 1; __jndex += 1) { \
-        (array)[__jndex] = (array)[__jndex + 1];                                      \
-    }                                                                                 \
-                                                                                      \
-    Array_getImpl((array))->count -= 1;
+#define Array_removeByValueOrdered(array, value)                                               \
+    do {                                                                                       \
+        for (isize _Array_index = 0; _Array_index < Array_count((array)); _Array_index += 1) { \
+            if ((value) == (array)[_Array_index]) {                                            \
+                Array_removeAtIndexOrdered((array), _Array_index);                             \
+                break;                                                                         \
+            }                                                                                  \
+        }                                                                                      \
+    } while (false)
 
-#define Array_removeByValueOrdered(array, value)                            \
-    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
-        if ((value) == (array)[__index]) {                                  \
-            Array_removeAtIndexOrdered((array), __index);                   \
-            break;                                                          \
-        }                                                                   \
-    }
+#define Array_removeAllByValue(array, value)                                                  \
+    do {                                                                                      \
+        isize _Array_index = Array_count((array)) - 1;                                        \
+        while (_Array_index >= 0) {                                                           \
+            if ((value) == (array)[_Array_index]) Array_removeAtIndex((array), _Array_index); \
+            _Array_index -= 1;                                                                \
+        }                                                                                     \
+    } while (false)
 
-#define Array_removeAllByValueOrdered(array, value)                         \
-    for (isize __index = 0; __index < Array_count((array)); __index += 1) { \
-        if ((value) == (array)[__index]) {                                  \
-            Array_removeAtIndexOrdered((array), __index);                   \
-            __index -= 1;                                                   \
-        }                                                                   \
-    }
+#define Array_removeAllByValueOrdered(array, value)                                                  \
+    do {                                                                                             \
+        isize _Array_index = Array_count((array)) - 1;                                               \
+        while (_Array_index >= 0) {                                                                  \
+            if ((value) == (array)[_Array_index]) Array_removeAtIndexOrdered((array), _Array_index); \
+            _Array_index -= 1;                                                                       \
+        }                                                                                            \
+    } while (false)
 
 #define Array_push(array, value) \
     Array_add((array), (value))
