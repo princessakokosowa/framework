@@ -118,7 +118,7 @@ typedef i64                isize;
 ATTRIBUTE_COLD
 ATTRIBUTE_NORETURN
 ATTRIBUTE_PRINTF(1, 2)
-void _panic(const char *format, ...) {
+void Foundation_panic(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
 
@@ -129,26 +129,24 @@ void _panic(const char *format, ...) {
     abort();
 }
 
-void _assert(bool ok, const char *file, int line, const char *func) {
-    if (!ok) {
-        _panic("Assertion failed at %s:%d in %s.\n", file, line, func);
-    }
+void Foundation_assert(bool is_alright, const char *file, int line, const char *func) {
+    if (!is_alright) Foundation_panic("Assertion failed at %s:%d in %s.\n", file, line, func);
 }
 
 #undef assert
 
 #ifdef _DEBUG
 
-    #define assert(ok)    _assert(ok, __FILE__, __LINE__, __func__)
-    #define unreachable() _panic("Unreachable at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
+    #define assert(is_alright) Foundation_assert(is_alright, __FILE__, __LINE__, __func__)
+    #define unreachable()      Foundation_panic("Unreachable at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 
 #else
 
-    #define assert(ok)
+    #define assert(is_alright)
     #define unreachable()
 
 #endif // _DEBUG
 
-#define staticAssert(ok) _Static_assert(ok, "Static assertion failed at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
+#define staticAssert(is_alright) _Static_assert(is_alright, "Static assertion failed at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 
 #endif // INCLUDE_FOUNDATION_H

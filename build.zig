@@ -146,6 +146,8 @@ pub fn build(b: *std.Build) !void {
             "-Wall",
             "-Werror",
             "-Wfatal-errors",
+            // "-Wno-gnu-statement-expression",
+            // "-Wno-gnu-statement-expression-from-macro-expansion",
             "-Wmissing-field-initializers",
             "-Wno-comment",
             "-Wno-extern-c-compat",

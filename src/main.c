@@ -288,7 +288,7 @@ void arraysTests(void) {
             }
             printf("Filled in the array with values!\n");
 
-            forEach(array) {
+            Array_for(array) {
                 if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
                 else                             printf("%5.1f\n", array[i]);
             }
@@ -301,7 +301,7 @@ void arraysTests(void) {
             Array_addAt(array, 666.f, 44);
             printf("Inserted one item at 44, its value is %5.1f!\n", array[44]);
 
-            forEach(array) {
+            Array_for(array) {
                 if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
                 else                             printf("%5.1f\n", array[i]);
             }
@@ -313,7 +313,7 @@ void arraysTests(void) {
             Array_removeAtIndex(array, 0);
             printf("Removed 0.f by value and a value at 0th index, but in a unordered way and therefore, the order has not been perserved!\n");
 
-            forEach(array) {
+            Array_for(array) {
                 if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
                 else                             printf("%5.1f\n", array[i]);
             }
@@ -324,7 +324,7 @@ void arraysTests(void) {
             Array_removeAtIndexOrdered(array, 33);
             printf("Removed 1.f by value and a value at 33rd index, but this time in an ordered way!\n");
 
-            forEach(array) {
+            Array_for(array) {
                 if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
                 else                             printf("%5.1f\n", array[i]);
             }
@@ -337,20 +337,32 @@ void arraysTests(void) {
             Array_resize(array, 261);
             printf("Tried to resize the array so that it has 224 items and that's alright, the capacity is %lli\n", Array_capacity(array));
 
-            forEach(array) {
+            Array_for(array) {
                 if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
                 else                             printf("%5.1f\n", array[i]);
             }
         }
 
         {
+            {
+                isize counter = 0;
+                Array_for(array) if (array[i] == 0.f) counter += 1;
+                printf("There are %lli 0.fs in this array. If removed, there will be %lli\n", counter, Array_count(array) - counter);
+            }
+
             Array_removeAllByValue(array, 0.f);
             printf("Removed all 0.f by value, the count is %lli\n", Array_count(array));
+
+            {
+                isize counter = 0;
+                Array_for(array) if (array[i] == 1.f) counter += 1;
+                printf("There are %lli 1.fs in this array. If removed, there will be %lli\n", counter, Array_count(array) - counter);
+            }
 
             Array_removeAllByValueOrdered(array, 1.f);
             printf("Removed all 1.f by value, the count is %lli\n", Array_count(array));
 
-            forEach(array) {
+            Array_for(array) {
                 if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
                 else                             printf("%5.1f\n", array[i]);
             }

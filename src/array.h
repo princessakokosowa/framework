@@ -17,18 +17,15 @@
 #include "allocator.h"
 #include "memory.h"
 
-#define ARRAY_DEFAULT_CAPACITY 4
+#define ARRAY_DEFAULT_CAPACITY 8
 
 typedef struct {
     isize count;
     isize capacity;
-} ArrayImpl;
+} Array;
 
-#define forEach(array)                                                                                                 \
-    for (isize i = 0; i < Array_count((array)); i += 1) \
-
-#define Array_getImpl(array)     (cast(ArrayImpl*, (array)) - 1)
-#define ArrayImpl_getArray(impl) (                 (impl)   + 1)
+#define Array_getImpl(array) (cast(Array*, (array)) - 1)
+#define Array_getArray(impl) (             (impl)   + 1)
 
 #define Array_count(array)                  \
     (                                       \
@@ -44,7 +41,10 @@ typedef struct {
             : 0                                \
     )
 
-static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isize count_added, isize capacity_to_be_set) {
+#define Array_for(array)                                \
+    for (isize i = 0; i < Array_count((array)); i += 1)
+
+static inline void *Array_grow(void *array, isize size_of_backing_type, isize count_added, isize capacity_to_be_set) {
     if (Array_count(array) + count_added > capacity_to_be_set) capacity_to_be_set = Array_count(array) + count_added;
     if (Array_capacity(array) >= capacity_to_be_set)           return array;
     //                        ^^
@@ -53,50 +53,50 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
     if      (2 * Array_capacity(array) > capacity_to_be_set) capacity_to_be_set = 2 * Array_capacity(array);
     else if (ARRAY_DEFAULT_CAPACITY > capacity_to_be_set)    capacity_to_be_set = ARRAY_DEFAULT_CAPACITY;
 
-    ArrayImpl *impl = null;
+    Array *impl = null;
     if (array == null) {
-        impl           = alloc(sizeof(ArrayImpl) + size_of_backing_type * capacity_to_be_set);
+        impl           = alloc(sizeof(Array) + size_of_backing_type * capacity_to_be_set);
         impl->count    = 0;
         impl->capacity = capacity_to_be_set;
     } else {
-        impl           = resize(Array_getImpl(array), sizeof(ArrayImpl) + size_of_backing_type * capacity_to_be_set);
+        impl           = resize(Array_getImpl(array), sizeof(Array) + size_of_backing_type * capacity_to_be_set);
         impl->capacity = capacity_to_be_set;
     }
 
-    return ArrayImpl_getArray(impl);
+    return Array_getArray(impl);
 }
 
-#define Array_reserve(array, capacity_to_be_set)                                   \
-    (array) = Array_maybeGrow((array), sizeof(*(array)), 0 , (capacity_to_be_set))
+#define Array_reserve(array, capacity_to_be_set)                              \
+    (array) = Array_grow((array), sizeof(*(array)), 0 , (capacity_to_be_set))
 
 #define Array_resize(array, count_to_be_set)                                                                                     \
     do {                                                                                                                         \
-        (array) = Array_maybeGrow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                       \
+        (array) = Array_grow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                            \
         if (Array_count((array)) < (count_to_be_set)) Array_getImpl((array))->count += (count_to_be_set) - Array_count((array)); \
     } while (false)
 
-#define Array_addAt(array, value, index)                                                  \
-    do {                                                                                  \
-        assert((index) >= 0);                                                             \
-        assert((index) <= Array_count((array)));                                          \
-                                                                                          \
-        (array)                       = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
-        Array_getImpl((array))->count += 1;                                               \
-                                                                                          \
-        Memory_move(                                                                      \
-            (array) + (index) + 1,                                                        \
-            (array) + (index),                                                            \
-            (Array_count((array)) - (index)) * sizeof(*(array))                           \
-        );                                                                                \
-                                                                                          \
-        (array)[(index)] = (value);                                                       \
+#define Array_addAt(array, value, index)                                             \
+    do {                                                                             \
+        assert((index) >= 0);                                                        \
+        assert((index) <= Array_count((array)));                                     \
+                                                                                     \
+        (array)                       = Array_grow((array), sizeof(*(array)), 1, 0); \
+        Array_getImpl((array))->count += 1;                                          \
+                                                                                     \
+        Memory_copy(                                                                 \
+            (array) + (index) + 1,                                                   \
+            (array) + (index),                                                       \
+            (Array_count((array)) - (index)) * sizeof(*(array))                      \
+        );                                                                           \
+                                                                                     \
+        (array)[(index)] = (value);                                                  \
     } while (false)
 
-#define Array_add(array, value)                                                                    \
-    do {                                                                                           \
-        (array)                                = Array_maybeGrow((array), sizeof(*(array)), 1, 0); \
-        (array)[Array_getImpl((array))->count] = (value);                                          \
-        Array_getImpl((array))->count          += 1;                                               \
+#define Array_add(array, value)                                                               \
+    do {                                                                                      \
+        (array)                                = Array_grow((array), sizeof(*(array)), 1, 0); \
+        (array)[Array_getImpl((array))->count] = (value);                                     \
+        Array_getImpl((array))->count          += 1;                                          \
     } while (false)
 
 #define Array_removeAtIndex(array, index)                                       \
@@ -113,7 +113,7 @@ static inline void *Array_maybeGrow(void *array, isize size_of_backing_type, isi
         assert((index) >= 0);                                   \
         assert((index) < Array_count((array)));                 \
                                                                 \
-        Memory_move(                                            \
+        Memory_copy(                                            \
             (array) + (index),                                  \
             (array) + (index) + 1,                              \
             (Array_count((array)) - (index)) * sizeof(*(array)) \
