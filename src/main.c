@@ -366,6 +366,16 @@ void arraysTests(void) {
                 if (i != Array_count(array) - 1) printf("%5.1f ", array[i]);
                 else                             printf("%5.1f\n", array[i]);
             }
+
+            Array_for(array) {
+                if (i != Array_count(array) - 1) printf("%x ", cast(isize, array[i]));
+                else                             printf("%x\n", cast(isize, array[i]));
+            }
+
+            Array_for(array) {
+                if (i != Array_count(array) - 1) printf("%a ", array[i]);
+                else                             printf("%a\n", array[i]);
+            }
         }
 
         Array_free(array);
