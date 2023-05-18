@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ALLOCATOR_H
 #define INCLUDE_ALLOCATOR_H
 
-#include "foundation.h"
+#include "basic.h"
 
 #define ALLOCATOR_ALIGNMENT 8
 static inline isize align(isize size, isize alignment) {

@@ -13,66 +13,73 @@
 #ifndef INCLUDE_ARRAY_H
 #define INCLUDE_ARRAY_H
 
-#include "foundation.h"
+#include "basic.h"
 #include "allocator.h"
+
 #include "memory.h"
 
-#define ARRAY_DEFAULT_CAPACITY 8
+#define ARRAY_DEFAULT_GROWTH_FACTOR 2
+#define ARRAY_DEFAULT_CAPACITY      8
 
 typedef struct {
     isize count;
     isize capacity;
-} Array;
+} ArrayPreamble;
 
-#define Array_getImpl(array) (cast(Array*, (array)) - 1)
-#define Array_getArray(impl) (             (impl)   + 1)
+#define Array_preamble(array)                  (cast(ArrayPreamble *, (array   )) - 1)
+#define Preamble_array(preamble) (cast(void *, (                       preamble   + 1)))
 
-#define Array_count(array)                  \
-    (                                       \
-        ((array) != null)                   \
-            ? Array_getImpl((array))->count \
-            : 0                             \
+#define Array_count(array)                   \
+    (                                        \
+        ((array) != null)                    \
+            ? Array_preamble((array))->count \
+            : 0                              \
     )
 
-#define Array_capacity(array)                  \
-    (                                          \
-        ((array) != null)                      \
-            ? Array_getImpl((array))->capacity \
-            : 0                                \
+#define Array_capacity(array)                   \
+    (                                           \
+        ((array) != null)                       \
+            ? Array_preamble((array))->capacity \
+            : 0                                 \
     )
 
-#define Array_for(array)                                \
-    for (isize i = 0; i < Array_count((array)); i += 1)
+#define Array_first(array) (array + 0)
+#define Array_last(array)  (array + Array_count(array))
 
-static inline void *Array_grow(void *array, isize size_of_backing_type, isize count_added, isize capacity_to_be_set) {
-    if (Array_count(array) + count_added > capacity_to_be_set) capacity_to_be_set = Array_count(array) + count_added;
-    if (Array_capacity(array) >= capacity_to_be_set)           return array;
-    //                        ^^
-    // That's fine, @TODO explain why.
+#define Array_for(array)                                            \
+    for (isize index = 0; index < Array_count((array)); index += 1)
 
-    if      (2 * Array_capacity(array) > capacity_to_be_set) capacity_to_be_set = 2 * Array_capacity(array);
-    else if (ARRAY_DEFAULT_CAPACITY > capacity_to_be_set)    capacity_to_be_set = ARRAY_DEFAULT_CAPACITY;
+#define Array_forEach(array)                                                                   \
+    for (__typeof((array)) iterator = (array); iterator != Array_last((array)); iterator += 1)
+    //   ^^^^^^^^^^^^^^
+    //   Oh, well...
 
-    Array *impl = null;
-    if (array == null) {
-        impl           = alloc(sizeof(Array) + size_of_backing_type * capacity_to_be_set);
-        impl->count    = 0;
-        impl->capacity = capacity_to_be_set;
-    } else {
-        impl           = resize(Array_getImpl(array), sizeof(Array) + size_of_backing_type * capacity_to_be_set);
-        impl->capacity = capacity_to_be_set;
-    }
+static inline void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set) {
+    if (Array_count(array) + count_to_be_added > capacity_to_be_set) capacity_to_be_set = Array_count(array) + count_to_be_added;
+    if (Array_capacity(array) >= capacity_to_be_set)                 return array;
 
-    return Array_getArray(impl);
+    if      (ARRAY_DEFAULT_GROWTH_FACTOR * Array_capacity(array) > capacity_to_be_set) capacity_to_be_set = ARRAY_DEFAULT_GROWTH_FACTOR * Array_capacity(array);
+    else if (ARRAY_DEFAULT_CAPACITY > capacity_to_be_set)                              capacity_to_be_set = ARRAY_DEFAULT_CAPACITY;
+
+    ArrayPreamble *preamble = null;
+    if (array == null) preamble = alloc(sizeof(ArrayPreamble) + size_of_backing_type * capacity_to_be_set);
+    else               preamble = resize(Array_preamble(array), sizeof(ArrayPreamble) + size_of_backing_type * capacity_to_be_set);
+
+    *preamble = (ArrayPreamble) {
+        .count    = Array_count(array),
+        .capacity = capacity_to_be_set,
+    };
+
+    return Preamble_array(preamble);
 }
 
 #define Array_reserve(array, capacity_to_be_set)                              \
     (array) = Array_grow((array), sizeof(*(array)), 0 , (capacity_to_be_set))
 
-#define Array_resize(array, count_to_be_set)                                                                                     \
-    do {                                                                                                                         \
-        (array) = Array_grow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                            \
-        if (Array_count((array)) < (count_to_be_set)) Array_getImpl((array))->count += (count_to_be_set) - Array_count((array)); \
+#define Array_resize(array, count_to_be_set)                                                                                   \
+    do {                                                                                                                       \
+        (array) = Array_grow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                          \
+        if (Array_count((array)) < (count_to_be_set)) Array_preamble((array))->count += (count_to_be_set) - Array_count((array)); \
     } while (false)
 
 #define Array_addAt(array, value, index)                                             \
@@ -81,9 +88,9 @@ static inline void *Array_grow(void *array, isize size_of_backing_type, isize co
         assert((index) <= Array_count((array)));                                     \
                                                                                      \
         (array)                       = Array_grow((array), sizeof(*(array)), 1, 0); \
-        Array_getImpl((array))->count += 1;                                          \
+        Array_preamble((array))->count += 1;                                         \
                                                                                      \
-        Memory_copy(                                                                 \
+        Memory_move(                                                                 \
             (array) + (index) + 1,                                                   \
             (array) + (index),                                                       \
             (Array_count((array)) - (index)) * sizeof(*(array))                      \
@@ -95,17 +102,17 @@ static inline void *Array_grow(void *array, isize size_of_backing_type, isize co
 #define Array_add(array, value)                                                               \
     do {                                                                                      \
         (array)                                = Array_grow((array), sizeof(*(array)), 1, 0); \
-        (array)[Array_getImpl((array))->count] = (value);                                     \
-        Array_getImpl((array))->count          += 1;                                          \
+        (array)[Array_preamble((array))->count] = (value);                                    \
+        Array_preamble((array))->count          += 1;                                         \
     } while (false)
 
-#define Array_removeAtIndex(array, index)                                       \
-    do {                                                                        \
-        assert((index) >= 0);                                                   \
-        assert((index) < Array_count((array)));                                 \
-                                                                                \
-        Array_getImpl((array))->count -= 1;                                     \
-        (array)[(index)]              = (array)[Array_getImpl((array))->count]; \
+#define Array_removeAtIndex(array, index)                                        \
+    do {                                                                         \
+        assert((index) >= 0);                                                    \
+        assert((index) < Array_count((array)));                                  \
+                                                                                 \
+        Array_preamble((array))->count -= 1;                                     \
+        (array)[(index)]              = (array)[Array_preamble((array))->count]; \
     } while (false)
 
 #define Array_removeAtIndexOrdered(array, index)                \
@@ -113,13 +120,13 @@ static inline void *Array_grow(void *array, isize size_of_backing_type, isize co
         assert((index) >= 0);                                   \
         assert((index) < Array_count((array)));                 \
                                                                 \
-        Memory_copy(                                            \
+        Memory_move(                                            \
             (array) + (index),                                  \
             (array) + (index) + 1,                              \
             (Array_count((array)) - (index)) * sizeof(*(array)) \
         );                                                      \
                                                                 \
-        Array_getImpl((array))->count -= 1;                     \
+        Array_preamble((array))->count -= 1;                    \
     } while (false)
 
 #define Array_removeByValue(array, value)                                                      \
@@ -163,14 +170,14 @@ static inline void *Array_grow(void *array, isize size_of_backing_type, isize co
 #define Array_push(array, value) \
     Array_add((array), (value))
 
-#define Array_pop(array)                       \
-    (                                          \
-        Array_getImpl((array))->count -= 1,    \
-        (array)[Array_getImpl((array))->count] \
+#define Array_pop(array)                        \
+    (                                           \
+        Array_preamble((array))->count -= 1,    \
+        (array)[Array_preamble((array))->count] \
     )
 
 static inline void Array_free(void *array) {
-    if (array != null) free(Array_getImpl(array));
+    if (array != null) free(Array_preamble(array));
 }
 
 #endif // INCLUDE_ARRAY_H

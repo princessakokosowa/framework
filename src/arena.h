@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ARENA_H
 #define INCLUDE_ARENA_H
 
-#include "foundation.h"
+#include "basic.h"
 #include "allocator.h"
 
 #define ARENA_DEFAULT_SIZE      65536
@@ -33,7 +33,7 @@ static void Arena_setAllocators(Arena *arena, Allocator *allocator) {
 
 void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->impl != null);
-    Arena *arena = cast(Arena*, description->impl);
+    Arena *arena = cast(Arena *, description->impl);
 
     switch (mode) {
         case ALLOCATOR_MODE_FREE: {
@@ -93,7 +93,7 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
         case ALLOCATOR_MODE_RESIZE: // through
         case ALLOCATOR_MODE_ALLOCATE: {
             bool is_that_resize                  = description->ptr_to_be_resized_or_freed != null;
-            bool is_this_the_previous_allocation = arena->ptr + arena->last == cast(u8*, description->ptr_to_be_resized_or_freed);
+            bool is_this_the_previous_allocation = arena->ptr + arena->last == cast(u8 *, description->ptr_to_be_resized_or_freed);
             if (is_that_resize == true && is_this_the_previous_allocation == true) {
                 isize previous_allocation_size = arena->occupied - arena->last;
                 isize allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
@@ -148,7 +148,7 @@ void Arena_destroy(Arena *arena) {
 void *Arena_get(Arena *arena, isize type_size_times_count) {
     return Arena_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
-        .impl                            = cast(void*, arena),
+        .impl                            = cast(void *, arena),
     });
 }
 
@@ -156,7 +156,7 @@ void *Arena_get(Arena *arena, isize type_size_times_count) {
 Allocator Arena_getAllocator(Arena *arena) {
     return (Allocator) {
         .procedure = Arena_allocatorProcedure,
-        .impl      = cast(void*, arena),
+        .impl      = cast(void *, arena),
     };
 }
 

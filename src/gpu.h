@@ -1,7 +1,7 @@
 #ifndef INCLUDE_GPU_H
 #define INCLUDE_GPU_H
 
-#include "foundation.h"
+#include "basic.h"
 
 typedef enum {
     GPU_BUFFER_TYPE_VERTEX,

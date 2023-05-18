@@ -1,7 +1,7 @@
 #ifndef INCLUDE_CONTEXT_H
 #define INCLUDE_CONTEXT_H
 
-#include "foundation.h"
+#include "basic.h"
 #include "allocator.h"
 #include "temporary_storage.h"
 
@@ -20,9 +20,9 @@ typedef struct {
 Context context;
 
 void *Default_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
-    if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void*,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
-    else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void*,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
-    else if (mode == ALLOCATOR_MODE_FREE)     return cast(void*, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
+    if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void *,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
+    else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void *,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
+    else if (mode == ALLOCATOR_MODE_FREE)     return cast(void *, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
 
     unreachable();
 }

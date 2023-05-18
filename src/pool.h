@@ -1,7 +1,7 @@
 #ifndef INCLUDE_POOL_H
 #define INCLUDE_POOL_H
 
-#include "foundation.h"
+#include "basic.h"
 #include "allocator.h"
 
 typedef struct Block Block;
@@ -92,7 +92,7 @@ void *DEPRECATED_Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescriptio
 
             bool is_that_allocation_too_big = description->size_to_be_allocated_or_resized >= pool->single_allocation_in_bucket_size;
             if (is_that_allocation_too_big == true) {
-                Block *block = cast(Block*, allocUsingAllocator(description->size_to_be_allocated_or_resized, &default_allocator));
+                Block *block = cast(Block *, allocUsingAllocator(description->size_to_be_allocated_or_resized, &default_allocator));
                 if (block == null) return null;
 
                 block->next                     = pool->out_of_bounds_allocations;
@@ -144,7 +144,7 @@ void DEPRECATED_Pool_destroy(Pool *pool) {
 void *DEPRECATED_Pool_get(Pool *pool, isize type_size_times_count) {
     return DEPRECATED_Pool_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
-        .impl                            = cast(void*, pool),
+        .impl                            = cast(void *, pool),
     });
 }
 
@@ -152,7 +152,7 @@ void *DEPRECATED_Pool_get(Pool *pool, isize type_size_times_count) {
 Allocator DEPRECATED_Pool_getAllocator(Pool *pool) {
     return (Allocator) {
         .procedure = DEPRECATED_Pool_allocatorProcedure,
-        .impl      = cast(void*, pool),
+        .impl      = cast(void *, pool),
     };
 }
 

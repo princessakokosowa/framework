@@ -1,7 +1,7 @@
 #ifndef INCLUDE_TEMPORARY_STORAGE_H
 #define INCLUDE_TEMPORARY_STORAGE_H
 
-#include "foundation.h"
+#include "basic.h"
 #include "allocator.h"
 
 #define OVERFLOW_PAGE_COUNT 32768
@@ -33,7 +33,7 @@ void TemporaryStorage_setAllocators(Allocator *allocator) {
 void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     switch (mode) {
         case ALLOCATOR_MODE_FREE: {
-            return cast(void*, cast(isize, true));
+            return cast(void *, cast(isize, true));
         } break;
 
         // @NOTE
@@ -127,7 +127,7 @@ void TemporaryStorage_create(void) {
 
     temporary_allocator = (Allocator) {
         .procedure = &TemporaryStorage_allocatorProcedure,
-        // .impl      = cast(void*, &temporary_storage),
+        // .impl      = cast(void *, &temporary_storage),
     };
 }
 

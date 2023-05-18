@@ -1,5 +1,5 @@
-#ifndef INCLUDE_FOUNDATION_H
-#define INCLUDE_FOUNDATION_H
+#ifndef INCLUDE_BASIC_H
+#define INCLUDE_BASIC_H
 
 // @TODO
 // Add this preprocessor macro in _build.zig_ file.
@@ -42,6 +42,10 @@ typedef double             f64;
 typedef u64                usize;
 typedef i64                isize;
 
+#define null 0
+
+#define cast(Type, value) ((Type)(value))
+
 // The convention here is that we ALWAYS use either `isize` or `usize` when we want to
 // indicate that we DO NOT care about the size of our variables at the moment we actually
 // write the code, and that it is still a subject for optimisation, e.g. once we know how
@@ -55,11 +59,6 @@ typedef i64                isize;
 // @TODO
 // Clean this up since we're not using MSVC ABI anymore.
 /////////////////////////////////////////////////////////////////////////////////////////
-#define cast(Type, value) ((Type)(value))
-
-#define arrayCount(value) ((isize)((sizeof((value))) / (sizeof((value[0])))))
-
-#define null 0
 
 #ifdef _MSC_VER
 
@@ -118,7 +117,7 @@ typedef i64                isize;
 ATTRIBUTE_COLD
 ATTRIBUTE_NORETURN
 ATTRIBUTE_PRINTF(1, 2)
-void Foundation_panic(const char *format, ...) {
+void Basic_panic(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
 
@@ -129,16 +128,16 @@ void Foundation_panic(const char *format, ...) {
     abort();
 }
 
-void Foundation_assert(bool is_alright, const char *file, int line, const char *func) {
-    if (!is_alright) Foundation_panic("Assertion failed at %s:%d in %s.\n", file, line, func);
+void Basic_assert(bool is_alright, const char *file, int line, const char *func) {
+    if (!is_alright) Basic_panic("Assertion failed at %s:%d in %s.\n", file, line, func);
 }
 
 #undef assert
 
 #ifdef _DEBUG
 
-    #define assert(is_alright) Foundation_assert(is_alright, __FILE__, __LINE__, __func__)
-    #define unreachable()      Foundation_panic("Unreachable at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
+    #define assert(is_alright) Basic_assert(is_alright, __FILE__, __LINE__, __func__)
+    #define unreachable()      Basic_panic("Unreachable at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 
 #else
 
@@ -149,4 +148,6 @@ void Foundation_assert(bool is_alright, const char *file, int line, const char *
 
 #define staticAssert(is_alright) _Static_assert(is_alright, "Static assertion failed at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 
-#endif // INCLUDE_FOUNDATION_H
+#define Basic_count(value) ((isize)((sizeof((value))) / (sizeof((value[0])))))
+
+#endif // INCLUDE_BASIC_H

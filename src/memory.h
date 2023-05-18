@@ -61,16 +61,7 @@ void *Memory_move(void *dest, const void *src, size_t n) {
 
     if (s + n <= d || d + n <= s) {
         // Non-overlapping memory blocks, use optimized memcpy
-        unsigned long *dest_aligned = (unsigned long *)dest;
-        const unsigned long *src_aligned = (const unsigned long *)src;
-
-        while (n >= sizeof(unsigned long)) {
-            *dest_aligned++ = *src_aligned++;
-            n -= sizeof(unsigned long);
-        }
-
-        d = (unsigned char *)dest_aligned;
-        s = (const unsigned char *)src_aligned;
+        Memory_copy(dest, src, n);
     }
 
     if (d < s) {
