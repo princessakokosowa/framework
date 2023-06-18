@@ -52,6 +52,6 @@ void prv_assert(bool condition, const char *file, int line, const char *func) {
 #include "math.h" // Windows-provided, @TODO make self.
 #include "thread.h"
 
-#include "os/os_entry_point.h"
+#include "os/entry_point.h"
 
 #endif // INCLUDE_BASIC_H
