@@ -62,15 +62,41 @@ void ArrayTests_test(void) {
 
             printf("Filled in the array with values!\n");
 
-            Array_for(array) {
+            // That is for (isize index = 0; index < Array_count((array)); index += 1),
+            // but done _there for you_.
+            forEachByIndex(array) {
                 if (index != Array_count(array) - 1) printf("%5.1f ",  array[index]);
                 else                                 printf("%5.1f\n", array[index]);
             }
 
-            Array_forEach(array) {
-                if (iterator != Array_last(array) - 1) printf("%5.1f ",  *iterator);
-                else                                   printf("%5.1f\n", *iterator);
+            // Iterators?
+            forEachByValue(array) {
+                // Here, we are comparing ADDRESSES of the currently iterated item and
+                // the last item in the array.
+                if (iterator != Array_last(array)) printf("%5.1f ",  *iterator);
+                else                               printf("%5.1f\n", *iterator);
             }
+
+            // That is probably not the most interesting consequence of iterating things
+            // that way, but quite indeed it produces an interesting result.
+            /*
+            forEachByValue(array) {
+                // Here, we are comparing VALUES of the currently iterated item and
+                // the last item in the array.
+                if (*iterator != *Array_last(array)) printf("%5.1f ",  *iterator);
+                else                                 printf("%5.1f\n", *iterator);
+            }
+            */
+
+            // Obviously, something similar can be achieved the following way.
+            /*
+            forEachByIndex(array) {
+                __typeof(array) iterator = Array_first(array) + index;
+
+                if (iterator != Array_last(array)) printf("%5.1f ",  *iterator);
+                else                               printf("%5.1f\n", *iterator);
+            }
+            */
         }
 
         {
@@ -80,7 +106,7 @@ void ArrayTests_test(void) {
             Array_addAt(array, 666.f, 44);
             printf("Inserted one item at 44, its value is %5.1f!\n", array[44]);
 
-            Array_for(array) {
+            forEachByIndex(array) {
                 if (index != Array_count(array) - 1) printf("%5.1f ", array[index]);
                 else                                 printf("%5.1f\n", array[index]);
             }
@@ -92,7 +118,7 @@ void ArrayTests_test(void) {
             Array_removeAtIndex(array, 0);
             printf("Removed 0.f by value and a value at 0th index, but in a unordered way and therefore, the order has not been perserved!\n");
 
-            Array_for(array) {
+            forEachByIndex(array) {
                 if (index != Array_count(array) - 1) printf("%5.1f ", array[index]);
                 else                                 printf("%5.1f\n", array[index]);
             }
@@ -103,7 +129,7 @@ void ArrayTests_test(void) {
             Array_removeAtIndexOrdered(array, 33);
             printf("Removed 1.f by value and a value at 33rd index, but this time in an ordered way!\n");
 
-            Array_for(array) {
+            forEachByIndex(array) {
                 if (index != Array_count(array) - 1) printf("%5.1f ", array[index]);
                 else                                 printf("%5.1f\n", array[index]);
             }
@@ -116,7 +142,7 @@ void ArrayTests_test(void) {
             Array_resize(array, 261);
             printf("Tried to resize the array so that it has 224 items and that's alright, the count and the capacity are respectively %lli and %lli\n", Array_count(array), Array_capacity(array));
 
-            Array_for(array) {
+            forEachByIndex(array) {
                 if (index != Array_count(array) - 1) printf("%5.1f ", array[index]);
                 else                                 printf("%5.1f\n", array[index]);
             }
@@ -125,28 +151,28 @@ void ArrayTests_test(void) {
         {
             {
                 isize counter = 0;
-                Array_for(array) if (array[index] == 0.f) counter += 1;
+                forEachByIndex(array) if (array[index] == 0.f) counter += 1;
                 printf("There are %lli 0.fs in this array. If removed, there will be %lli\n", counter, Array_count(array) - counter);
             }
 
             Array_removeAllByValue(array, 0.f);
             printf("Removed all 0.f by value, the count is %lli\n", Array_count(array));
 
-            Array_for(array) {
+            forEachByIndex(array) {
                 if (index != Array_count(array) - 1) printf("%5.1f ", array[index]);
                 else                                 printf("%5.1f\n", array[index]);
             }
 
             {
                 isize counter = 0;
-                Array_for(array) if (array[index] == 1.f) counter += 1;
+                forEachByIndex(array) if (array[index] == 1.f) counter += 1;
                 printf("There are %lli 1.fs in this array. If removed, there will be %lli\n", counter, Array_count(array) - counter);
             }
 
             Array_removeAllByValueOrdered(array, 1.f);
             printf("Removed all 1.f by value, the count is %lli\n", Array_count(array));
 
-            Array_for(array) {
+            forEachByIndex(array) {
                 if (index != Array_count(array) - 1) printf("%5.1f ", array[index]);
                 else                                 printf("%5.1f\n", array[index]);
             }
@@ -165,6 +191,14 @@ void ArrayTests_test(void) {
 
         f32 *array = null;
         Array_reserve(array, 384);
+
+        forInRange(0, 5) {
+            Array_add(array, cast(f32, index ^ index * 2 << 2));
+        }
+
+        forEach(array) {
+            printf("%i %1.1f\n", index, *value);
+        }
 
         Array_free(array);
         Context_remindAllocators();
