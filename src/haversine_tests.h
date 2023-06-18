@@ -1,7 +1,4 @@
 #include "basic.h"
-#include "context.h"
-
-#include "math.h"
 
 f64 Math_square(f64 a)
 {

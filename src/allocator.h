@@ -1,8 +1,6 @@
 #ifndef INCLUDE_ALLOCATOR_H
 #define INCLUDE_ALLOCATOR_H
 
-#include "basic.h"
-
 enum {
     ALLOCATOR_ALIGNMENT = 8,
 };
@@ -84,7 +82,7 @@ typedef struct {
 
 // @TODO
 // Consider moving this to context.h.
-//     ~ mmacieje, 17 June 2023
+//     ~ princessakokosowa, 17 June 2023
 void *Context_alloc(isize type_size_times_count);
 void *Context_resize(void *ptr, isize type_size_times_count);
 void  Context_free(void *ptr);

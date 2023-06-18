@@ -36,7 +36,7 @@ static void Arena_setAllocators(Arena *arena, Allocator *allocator) {
 }
 
 void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
-    Basic_assert(description->impl != null);
+    ensure(description->impl != null);
 
     Arena *arena = cast(Arena *, description->impl);
 
@@ -44,7 +44,7 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
         case ALLOCATOR_MODE_FREE: {
             return cast(void*, cast(isize, true));
         } break;
-        case ALLOCATOR_MODE_RESIZE: // through
+        case ALLOCATOR_MODE_RESIZE: through
         case ALLOCATOR_MODE_ALLOCATE: {
             bool is_that_resize                  = description->ptr_to_be_resized_or_freed != null;
             bool is_this_the_previous_allocation = arena->ptr + arena->last == cast(u8 *, description->ptr_to_be_resized_or_freed);
@@ -53,14 +53,14 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
                 isize allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
                 isize aligned_allocation_size  = align(allocation_size, ALLOCATOR_ALIGNMENT);
 
-                Basic_assert(arena->occupied + aligned_allocation_size <= arena->size);
+                ensure(arena->occupied + aligned_allocation_size <= arena->size);
 
                 arena->occupied += aligned_allocation_size;
 
                 return description->ptr_to_be_resized_or_freed;
             }
 
-            Basic_assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
+            ensure(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
 
             if (arena->backing_allocator == null) {
                 bool are_we_already_set_in_context = context.allocator->impl == arena;
@@ -81,15 +81,15 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
         } break;
     }
 
-    Basic_unreachable();
+    unreachable();
 }
 
 Arena Arena_create(ArenaDescription *description) {
     return (Arena) {
-        .alignment         = Basic_valueOrItsDefault(description->alignment, ARENA_DEFAULT_ALIGNMENT),
-        .size              = Basic_valueOrItsDefault(description->size, ARENA_DEFAULT_SIZE),
-        .should_overwrite  = Basic_valueOrItsDefault(description->should_overwrite, false),
-        .backing_allocator = Basic_valueOrItsDefault(description->backing_allocator, null),
+        .alignment         = description->alignment ? description->alignment : ARENA_DEFAULT_ALIGNMENT,
+        .size              = description->size      ? description->size      : ARENA_DEFAULT_SIZE,
+        .should_overwrite  = description->should_overwrite,
+        .backing_allocator = description->backing_allocator,
     };
 }
 

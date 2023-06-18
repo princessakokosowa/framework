@@ -2,10 +2,7 @@
 #define INCLUDE_ALLOCATOR_TESTS_H
 
 #include "basic.h"
-#include "allocator.h"
-#include "context.h"
 
-#include "memory.h"
 #include "arena.h"
 
 isize CString_count(u8 *c_string) {
@@ -21,7 +18,7 @@ isize CString_count(u8 *c_string) {
 void CString_copy(u8 *destination, u8 *source) {
     isize source_count = CString_count(source);
 
-    Memory_copy(destination, source, source_count);
+    Memory_rawCopy(destination, source, source_count);
 
     destination[source_count] = '\0';
 }
@@ -46,7 +43,7 @@ void AllocatorTests_test(void) {
                 "what?",
             };
 
-            for (isize i = 0; i < Basic_count(strings); i += 1) {
+            for (isize i = 0; i < arrayCount(strings); i += 1) {
                 CString_copy(buf, cast(u8 *, strings[i]));
 
                 printf("%s\n", buf);
@@ -71,7 +68,7 @@ void AllocatorTests_test(void) {
                 "who?",
             };
 
-            for (isize i = 0; i < Basic_count(strings); i += 1) {
+            for (isize i = 0; i < arrayCount(strings); i += 1) {
                 CString_copy(buf, cast(u8 *, strings[i]));
 
                 printf("%s\n", buf);
@@ -95,7 +92,7 @@ void AllocatorTests_test(void) {
                 "chka-chka, Slim Shady",
             };
 
-            for (isize i = 0; i < Basic_count(strings); i += 1) {
+            for (isize i = 0; i < arrayCount(strings); i += 1) {
                 CString_copy(buf, cast(u8 *, strings[i]));
 
                 printf("%s\n", buf);
@@ -122,7 +119,7 @@ void AllocatorTests_test(void) {
             "Twisted face upon the head",
         };
 
-        for (isize i = 0; i < Basic_count(strings); i += 1) {
+        for (isize i = 0; i < arrayCount(strings); i += 1) {
             CString_copy(buf, cast(u8 *, strings[i]));
 
             printf("%s\n", buf);
@@ -144,7 +141,7 @@ void AllocatorTests_test(void) {
             "Twisted face upon the head",
         };
 
-        for (isize i = 0; i < Basic_count(strings); i += 1) {
+        for (isize i = 0; i < arrayCount(strings); i += 1) {
             CString_copy(buf, cast(u8 *, strings[i]));
 
             printf("%s\n", buf);

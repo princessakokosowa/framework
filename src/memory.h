@@ -1,86 +1,73 @@
 #ifndef INCLUDE_MEMORY_H
 #define INCLUDE_MEMORY_H
 
-void *Memory_copy(void *dest, const void *src, size_t n) {
-    unsigned char *d = (unsigned char *)dest;
-    const unsigned char *s = (const unsigned char *)src;
+void *Memory_rawCopy(void *destination, void *source, usize count_to_be_copied) {
+    // Cache coherency.
+    u8 *d = cast(u8 *, destination);
+    u8 *s = cast(u8 *, source);
 
-    size_t i;
+    // Copy blocks of size of `u32` bytes.
+    //
+    // @NOTE
+    // Couldn't we try copying chunks of size of `u64`?
+    //     ~ princessakokosowa, 18 June 2023
+    for (usize index = 0; index < count_to_be_copied / sizeof(u32); index += 1) {
+        *cast(u32 *,d) = *cast(u32 *, s);
 
-    // Copy blocks of sizeof(unsigned long) bytes
-    for (i = 0; i < n / sizeof(unsigned long); i++) {
-        *((unsigned long *)d) = *((unsigned long *)s);
-        d += sizeof(unsigned long);
-        s += sizeof(unsigned long);
+        d += sizeof(u32);
+        s += sizeof(u32);
     }
 
-    // Copy remaining bytes individually
-    for (i = 0; i < n % sizeof(unsigned long); i++) {
-        *d++ = *s++;
+    // Copy remaining bytes individually.
+    for (usize index = 0; index < count_to_be_copied % sizeof(u32); index += 1) {
+        *d = *s;
+
+        d += 1;
+        s += 1;
     }
 
-    return dest;
+    return destination;
 }
 
-bool Memory_isEqual(const void* ptr1, const void* ptr2, size_t size) {
-    const unsigned char* bytePtr1 = (const unsigned char*)ptr1;
-    const unsigned char* bytePtr2 = (const unsigned char*)ptr2;
+void *Memory_copy(void *destination, void *source, usize count_to_be_copied) {
+    // Cache coherency.
+    u8 *d = cast(u8 *, destination);
+    u8 *s = cast(u8 *, source);
 
-    // Compare 64 bits (8 bytes) at a time
-    const size_t chunkSize = sizeof(unsigned long long);
-    const size_t numChunks = size / chunkSize;
-
-    // Compare the memory blocks in 64-bit chunks
-    for (size_t i = 0; i < numChunks; i++) {
-        const unsigned long long* chunkPtr1 = (const unsigned long long*)(bytePtr1 + i * chunkSize);
-        const unsigned long long* chunkPtr2 = (const unsigned long long*)(bytePtr2 + i * chunkSize);
-
-        if (*chunkPtr1 != *chunkPtr2) {
-            // Memory blocks are not equal
-            return false;
-        }
-    }
-
-    // Compare the remaining bytes (if any) byte by byte
-    const size_t remainingBytes = size % chunkSize;
-    for (size_t i = size - remainingBytes; i < size; i++) {
-        if (bytePtr1[i] != bytePtr2[i]) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-void *Memory_move(void *dest, const void *src, size_t n) {
-    unsigned char *d = (unsigned char *)dest;
-    const unsigned char *s = (const unsigned char *)src;
-
+    // Nothing to copy.
     if (d == s)
         return d;
 
-    if (s + n <= d || d + n <= s) {
-        // Non-overlapping memory blocks, use optimized memcpy
-        Memory_copy(dest, src, n);
+    // Non-overlapping memory blocks, simply copy the memory.
+    if (s + count_to_be_copied <= d || d + count_to_be_copied <= s) {
+        Memory_rawCopy(destination, source, count_to_be_copied);
     }
 
     if (d < s) {
-        // Copy from start to end
-        while (n > 0) {
-            *d++ = *s++;
-            n--;
+        // Copy from start to end.
+        while (count_to_be_copied > 0) {
+            *d = *s;
+
+            d += 1;
+            s += 1;
+
+            count_to_be_copied -= 1;
         }
     } else {
-        // Copy from end to start
-        d += n - 1;
-        s += n - 1;
-        while (n > 0) {
-            *d-- = *s--;
-            n--;
+        // Copy from end to start.
+        d += count_to_be_copied - 1;
+        s += count_to_be_copied - 1;
+        while (count_to_be_copied > 0) {
+            *d = *s;
+
+            d -= 1;
+            s -= 1;
+
+            count_to_be_copied -= 1;
         }
     }
 
-    return dest;
+    return destination;
 }
 
 #endif // INCLUDE_MEMORY_H

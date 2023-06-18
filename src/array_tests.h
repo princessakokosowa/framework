@@ -2,13 +2,8 @@
 #define INCLUDE_ARRAY_TESTS_H
 
 #include "basic.h"
-#include "allocator.h"
-#include "context.h"
 
-#include "memory.h"
 #include "arena.h"
-
-#include "array.h"
 
 void ArrayTests_test(void) {
     {
@@ -202,6 +197,32 @@ void ArrayTests_test(void) {
 
         Array_free(array);
         Context_remindAllocators();
+        Arena_destroy(&arena);
+    }
+
+    {
+        Arena     arena           = Arena_create(&(ArenaDescription) { 0, });
+        Allocator arena_allocator = Arena_getAllocator(&arena);
+
+        f32 *array = null;
+
+        Array_setAllocators(array, &arena_allocator);
+        Array_reserve(array, 384);
+
+        forInRange(0, 5) {
+            Array_add(array, cast(f32, index ^ index * 2 << 2));
+        }
+
+        forEach(array) {
+            printf("%i %1.1f\n", index, *value);
+        }
+
+        printf("count               : %lld\n", Array_count(array));
+        printf("capacity            : %lld\n", Array_capacity(array));
+        printf("allocator.procedure : 0x%p\n", Array_allocator(array)->procedure);
+        printf("allocator.impl      : 0x%p\n", Array_allocator(array)->impl);
+
+        Array_free(array);
         Arena_destroy(&arena);
     }
 }

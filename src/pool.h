@@ -2,7 +2,6 @@
 #define INCLUDE_POOL_H
 
 #include "basic.h"
-#include "allocator.h"
 
 typedef struct Block Block;
 struct Block {
@@ -47,11 +46,11 @@ typedef struct {
     Allocator *backing_allocator;
 } Pool;
 
-void DEPRECATED__Pool_setAllocators(Pool *pool, Allocator *allocator) {
+void Pool_setAllocators(Pool *pool, Allocator *allocator) {
     pool->backing_allocator = allocator;
 }
 
-void DEPRECATED__Pool_makeAndSwapBlocks(Pool *pool) {
+void Pool_makeAndSwapBlocks(Pool *pool) {
     Block *new_block;
     if (pool->unused_blocks != null) {
         new_block           = pool->unused_blocks;
@@ -71,8 +70,8 @@ void DEPRECATED__Pool_makeAndSwapBlocks(Pool *pool) {
     pool->current_ptr   = pool->current_block->ptr;
 }
 
-void *DEPRECATED_Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
-    assert(description->impl != null);
+void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+    ensure(description->impl != null);
 
     Pool *pool = cast(Pool*, description->impl);
 
@@ -80,17 +79,17 @@ void *DEPRECATED_Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescriptio
         case ALLOCATOR_MODE_FREE: {
             return cast(void*, cast(isize, true));
         } break;
-        case ALLOCATOR_MODE_RESIZE: // through
+        case ALLOCATOR_MODE_RESIZE: through
         case ALLOCATOR_MODE_ALLOCATE: {
-            assert(description->size_to_be_allocated_or_resized > 0);
+            ensure(description->size_to_be_allocated_or_resized > 0);
 
             // @TODO
             // Detect whether a user makes a mistake and sets the backing allocator to
             // `Context`'s allocator, which may be set to this pool.
             if (pool->backing_allocator == null) {
                 bool are_we_already_set_in_context = context.allocator->impl == pool;
-                if (are_we_already_set_in_context == true) DEPRECATED__Pool_setAllocators(pool, &default_allocator);
-                else                                       DEPRECATED__Pool_setAllocators(pool, context.allocator);
+                if (are_we_already_set_in_context == true) Pool_setAllocators(pool, &default_allocator);
+                else                                       Pool_setAllocators(pool, context.allocator);
             }
 
             bool is_that_allocation_too_big = description->size_to_be_allocated_or_resized >= pool->single_allocation_in_bucket_size;
@@ -109,7 +108,7 @@ void *DEPRECATED_Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescriptio
             isize aligned_ptr_position                = alignPtr(pool->current_ptr, pool->alignment);
             bool  is_there_enough_space_left_in_block = pool->left > description->size_to_be_allocated_or_resized + sizeof(Block) + aligned_ptr_position;
             if (is_there_enough_space_left_in_block == false) {
-                DEPRECATED__Pool_makeAndSwapBlocks(pool);
+                Pool_makeAndSwapBlocks(pool);
 
                 if (pool->current_block == null) return null;
                 aligned_ptr_position = alignPtr(pool->current_ptr, pool->alignment);
@@ -128,7 +127,7 @@ void *DEPRECATED_Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescriptio
     Basic_unreachable();
 }
 
-Pool DEPRECATED_Pool_create(PoolDescription *description) {
+Pool Pool_create(PoolDescription *description) {
     return (Pool) {
         .bucket_size                      = POOL_DEFAULT_BUCKET_SIZE,
         .single_allocation_in_bucket_size = POOL_DEFAULT_SINGLE_ALLOCATION_IN_BUCKET_SIZE,
@@ -138,23 +137,23 @@ Pool DEPRECATED_Pool_create(PoolDescription *description) {
     };
 }
 
-void DEPRECATED_Pool_destroy(Pool *pool) {
+void Pool_destroy(Pool *pool) {
     *pool = (Pool) {
         0,
     };
 }
 
-void *DEPRECATED_Pool_get(Pool *pool, isize type_size_times_count) {
-    return DEPRECATED_Pool_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
+void *Pool_get(Pool *pool, isize type_size_times_count) {
+    return Pool_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = cast(void *, pool),
     });
 }
 
 
-Allocator DEPRECATED_Pool_getAllocator(Pool *pool) {
+Allocator Pool_getAllocator(Pool *pool) {
     return (Allocator) {
-        .procedure = DEPRECATED_Pool_allocatorProcedure,
+        .procedure = Pool_allocatorProcedure,
         .impl      = cast(void *, pool),
     };
 }

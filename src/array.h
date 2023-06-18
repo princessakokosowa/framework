@@ -13,11 +13,6 @@
 #ifndef INCLUDE_ARRAY_H
 #define INCLUDE_ARRAY_H
 
-#include "basic.h"
-#include "allocator.h"
-
-#include "memory.h"
-
 enum {
     ARRAY_DEFAULT_GROWTH_FACTOR = 2,
     ARRAY_DEFAULT_CAPACITY      = 8,
@@ -78,7 +73,7 @@ typedef struct {
 //       corresponding value are available for each iteration
 //
 // I have no clue how much such thing may hurt performance in practice, we will see.
-//     ~ mmacieje, 18 June 2023
+//     ~ princessakokosowa, 18 June 2023
 #define forEach(array)                                                                      \
     for (isize flip = 0, index = 0; index < Array_count((array)); flip = !flip, index += 1) \
         for (__typeof((array)) value = (array) + index; flip != 1; flip = !flip)
@@ -109,9 +104,9 @@ static inline void *Array_grow(void *array, isize size_of_backing_type, isize co
     return Preamble_castToArray(preamble);
 }
 
-static inline void *Array_setAllocators(void *array, Allocator *allocator) {
-    if (array != null)     Basic_assert(true);
-    if (allocator == null) Basic_assert(true);
+static inline void *Array_initialiseWithAllocators(void *array, Allocator *allocator) {
+    ensure(array == null);
+    ensure(allocator != null);
 
     isize size_of_backing_type = sizeof(isize);
 
@@ -125,99 +120,102 @@ static inline void *Array_setAllocators(void *array, Allocator *allocator) {
     return Preamble_castToArray(preamble);
 }
 
+#define Array_setAllocators(array, allocator)                      \
+    (array) = Array_initialiseWithAllocators((array), (allocator))
+
 #define Array_reserve(array, capacity_to_be_set)                             \
     (array) = Array_grow((array), sizeof(*(array)), 0, (capacity_to_be_set))
 
 #define Array_resize(array, count_to_be_set)                                                                                            \
-    do {                                                                                                                                \
+    multilineMacroBegin                                                                                                                 \
         (array) = Array_grow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                                   \
         if (Array_count((array)) < (count_to_be_set)) Array_castToPreamble((array))->count += (count_to_be_set) - Array_count((array)); \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_addAt(array, value, index)                                             \
-    do {                                                                             \
-        Basic_assert((index) >= 0);                                                  \
-        Basic_assert((index) <= Array_count((array)));                               \
+    multilineMacroBegin                                                              \
+        ensure((index) >= 0);                                                        \
+        ensure((index) <= Array_count((array)));                                     \
                                                                                      \
         (array)                       = Array_grow((array), sizeof(*(array)), 1, 0); \
         Array_castToPreamble((array))->count += 1;                                   \
                                                                                      \
-        Memory_move(                                                                 \
+        Memory_copy(                                                                 \
             (array) + (index) + 1,                                                   \
             (array) + (index),                                                       \
             (Array_count((array)) - (index)) * sizeof(*(array))                      \
         );                                                                           \
                                                                                      \
         (array)[(index)] = (value);                                                  \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_add(array, value)                                                             \
-    do {                                                                                    \
+    multilineMacroBegin                                                                     \
         (array)                              = Array_grow((array), sizeof(*(array)), 1, 0); \
         (array)[Array_count((array))]        = (value);                                     \
         Array_castToPreamble((array))->count += 1;                                          \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_removeAtIndex(array, index)                                     \
-    do {                                                                      \
-        Basic_assert((index) >= 0);                                           \
-        Basic_assert((index) < Array_count((array)));                         \
+    multilineMacroBegin                                                       \
+        ensure((index) >= 0);                                                 \
+        ensure((index) < Array_count((array)));                               \
                                                                               \
         Array_castToPreamble((array))->count -= 1;                            \
         (array)[(index)]                     = (array)[Array_count((array))]; \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_removeAtIndexOrdered(array, index)                \
-    do {                                                        \
-        Basic_assert((index) >= 0);                             \
-        Basic_assert((index) < Array_count((array)));           \
+    multilineMacroBegin                                         \
+        ensure((index) >= 0);                                   \
+        ensure((index) < Array_count((array)));                 \
                                                                 \
-        Memory_move(                                            \
+        Memory_copy(                                            \
             (array) + (index),                                  \
             (array) + (index) + 1,                              \
             (Array_count((array)) - (index)) * sizeof(*(array)) \
         );                                                      \
                                                                 \
-        Array_castToPreamble((array))->count -= 1;                 \
-    } while (false)
+        Array_castToPreamble((array))->count -= 1;              \
+    multilineMacroEnd
 
 #define Array_removeByValue(array, value)                                                      \
-    do {                                                                                       \
+    multilineMacroBegin                                                                        \
         for (isize _Array_index = 0; _Array_index < Array_count((array)); _Array_index += 1) { \
             if ((value) == (array)[_Array_index]) {                                            \
                 Array_removeAtIndex((array), _Array_index);                                    \
                 break;                                                                         \
             }                                                                                  \
         }                                                                                      \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_removeByValueOrdered(array, value)                                               \
-    do {                                                                                       \
+    multilineMacroBegin                                                                        \
         for (isize _Array_index = 0; _Array_index < Array_count((array)); _Array_index += 1) { \
             if ((value) == (array)[_Array_index]) {                                            \
                 Array_removeAtIndexOrdered((array), _Array_index);                             \
                 break;                                                                         \
             }                                                                                  \
         }                                                                                      \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_removeAllByValue(array, value)                                                  \
-    do {                                                                                      \
+    multilineMacroBegin                                                                       \
         isize _Array_index = Array_count((array)) - 1;                                        \
         while (_Array_index >= 0) {                                                           \
             if ((value) == (array)[_Array_index]) Array_removeAtIndex((array), _Array_index); \
             _Array_index -= 1;                                                                \
         }                                                                                     \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_removeAllByValueOrdered(array, value)                                                  \
-    do {                                                                                             \
+    multilineMacroBegin                                                                              \
         isize _Array_index = Array_count((array)) - 1;                                               \
         while (_Array_index >= 0) {                                                                  \
             if ((value) == (array)[_Array_index]) Array_removeAtIndexOrdered((array), _Array_index); \
             _Array_index -= 1;                                                                       \
         }                                                                                            \
-    } while (false)
+    multilineMacroEnd
 
 #define Array_push(array, value) \
     Array_add((array), (value))

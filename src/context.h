@@ -1,10 +1,6 @@
 #ifndef INCLUDE_CONTEXT_H
 #define INCLUDE_CONTEXT_H
 
-#include "basic.h"
-#include "allocator.h"
-#include "temporary_storage.h"
-
 // Do we actually want to do it that way? I mean, our call stack _probably_ won't be
 // deeper than 32 procedure calls, or maybe it will? I don't know, man, but let's go that
 // way and see whether it works for that use case.
@@ -28,7 +24,7 @@ void *Default_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descr
     else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void *,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_FREE)     return cast(void *, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
 
-    Basic_unreachable();
+    unreachable();
 }
 
 Allocator default_allocator = (Allocator) {
@@ -45,7 +41,7 @@ void Context_create(void) {
 }
 
 void Context_rememberAllocators(void) {
-    Basic_assert(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
+    ensure(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
 
     context.remembered_list[context.remembered_count] = context.allocator;
     context.remembered_count                          += 1;
@@ -58,6 +54,8 @@ void Context_setAllocators(Allocator *allocator) {
 }
 
 void Context_remindAllocators(void) {
+    ensure(context.remembered_count != 0);
+
     context.remembered_count                          -= 1;
     context.allocator                                 = context.remembered_list[context.remembered_count];
     context.remembered_list[context.remembered_count] = null;
@@ -95,13 +93,13 @@ void *Context_alloc(isize type_size_times_count) {
         .impl                            = context.allocator->impl,
     });
 
-    Basic_assert(maybe_ptr != null);
+    ensure(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
 void *Context_resize(void *ptr, isize type_size_times_count) {
-    Basic_assert(ptr != null);
+    ensure(ptr != null);
 
     void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
         .ptr_to_be_resized_or_freed      = ptr,
@@ -109,20 +107,20 @@ void *Context_resize(void *ptr, isize type_size_times_count) {
         .impl                            = context.allocator->impl,
     });
 
-    Basic_assert(maybe_ptr != null);
+    ensure(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
 void Context_free(void *ptr) {
-    Basic_assert(ptr != null);
+    ensure(ptr != null);
 
     void *result_but_ptr = context.allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
         .ptr_to_be_resized_or_freed = ptr,
         .impl                       = context.allocator->impl,
     });
 
-    Basic_assert(result_but_ptr != null);
+    ensure(result_but_ptr != null);
 
     (void) result_but_ptr;
 }
@@ -133,13 +131,13 @@ void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *alloca
         .impl                            = allocator->impl,
     });
 
-    Basic_assert(maybe_ptr != null);
+    ensure(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
 void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator) {
-    Basic_assert(ptr != null);
+    ensure(ptr != null);
 
     void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
         .ptr_to_be_resized_or_freed      = ptr,
@@ -147,20 +145,20 @@ void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Alloc
         .impl                            = allocator->impl,
     });
 
-    Basic_assert(maybe_ptr != null);
+    ensure(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
 void Context_freeUsingAllocator(void *ptr, Allocator *allocator) {
-    Basic_assert(ptr != null);
+    ensure(ptr != null);
 
     void *result_but_ptr = allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
         .ptr_to_be_resized_or_freed = ptr,
         .impl                       = allocator->impl,
     });
 
-    Basic_assert(result_but_ptr != null);
+    ensure(result_but_ptr != null);
 
     (void) result_but_ptr;
 }
