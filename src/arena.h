@@ -4,14 +4,18 @@
 #include "basic.h"
 #include "allocator.h"
 
-#define ARENA_DEFAULT_SIZE      65536
-#define ARENA_DEFAULT_ALIGNMENT 8
+enum {
+    ARENA_DEFAULT_SIZE      = 65536,
+    ARENA_DEFAULT_ALIGNMENT = 8,
+};
 
 typedef struct {
     isize alignment;
     isize size;
 
     bool should_overwrite;
+
+    Allocator *backing_allocator;
 } ArenaDescription;
 
 typedef struct {
@@ -32,64 +36,14 @@ static void Arena_setAllocators(Arena *arena, Allocator *allocator) {
 }
 
 void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
-    assert(description->impl != null);
+    Basic_assert(description->impl != null);
+
     Arena *arena = cast(Arena *, description->impl);
 
     switch (mode) {
         case ALLOCATOR_MODE_FREE: {
             return cast(void*, cast(isize, true));
         } break;
-
-        // @NOTE
-        // We had this split.
-        //
-        //     case ALLOCATOR_MODE_RESIZE: {
-        //         assert(description->ptr_to_be_resized_or_freed != null);
-        //     
-        //         bool is_this_the_previous_allocation = arena->ptr + arena->last == cast(u8*, description->ptr_to_be_resized_or_freed);
-        //         if (is_this_the_previous_allocation == true) {
-        //             isize previous_allocation_size = arena->occupied - arena->last;
-        //             isize allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
-        //             isize aligned_allocation_size  = align(allocation_size, ALLOCATOR_ALIGNMENT);
-        //     
-        //             assert(arena->occupied + aligned_allocation_size <= arena->size);
-        //     
-        //             arena->occupied += aligned_allocation_size;
-        //     
-        //             return description->ptr_to_be_resized_or_freed;
-        //         }
-        //     
-        //         assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
-        //     
-        //         isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        //         u8    *chunk                  = arena->ptr + arena->occupied;
-        //     
-        //         arena->occupied += aligned_allocation_size;
-        //     
-        //     
-        //     } break;
-        //     case ALLOCATOR_MODE_ALLOCATE: {
-        //         assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
-        //     
-        //         if (arena->backing_allocator == null) {
-        //             bool are_we_already_set_in_context = context.allocator->impl == arena;
-        //             if (are_we_already_set_in_context == true) __Arena_setAllocators(arena, &default_allocator);
-        //             else                                       __Arena_setAllocators(arena, context.allocator);
-        //         }
-        //     
-        //         if (arena->ptr == null) arena->ptr = allocUsingAllocator(arena->size, arena->backing_allocator);
-        //     
-        //         isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
-        //         u8    *chunk                  = arena->ptr + arena->occupied;
-        //     
-        //         arena->last     =  arena->occupied;
-        //         arena->occupied += aligned_allocation_size;
-        //     
-        //         return chunk;
-        //
-        // We decided to merge ALLOCATOR_MODE_RESIZE and ALLOCATOR_MODE_ALLOCATE,
-        // because people may use resize for allocating for simplicity.
-
         case ALLOCATOR_MODE_RESIZE: // through
         case ALLOCATOR_MODE_ALLOCATE: {
             bool is_that_resize                  = description->ptr_to_be_resized_or_freed != null;
@@ -99,14 +53,14 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
                 isize allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
                 isize aligned_allocation_size  = align(allocation_size, ALLOCATOR_ALIGNMENT);
 
-                assert(arena->occupied + aligned_allocation_size <= arena->size);
+                Basic_assert(arena->occupied + aligned_allocation_size <= arena->size);
 
                 arena->occupied += aligned_allocation_size;
 
                 return description->ptr_to_be_resized_or_freed;
             }
 
-            assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
+            Basic_assert(arena->occupied + description->size_to_be_allocated_or_resized <= arena->size);
 
             if (arena->backing_allocator == null) {
                 bool are_we_already_set_in_context = context.allocator->impl == arena;
@@ -119,21 +73,23 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
             u8    *chunk                  = arena->ptr + arena->occupied;
 
-            if (!is_that_resize) arena->last = arena->occupied;
+            if (is_that_resize == false) arena->last = arena->occupied;
+
             arena->occupied += aligned_allocation_size;
 
             return chunk;
         } break;
     }
 
-    unreachable();
+    Basic_unreachable();
 }
 
 Arena Arena_create(ArenaDescription *description) {
     return (Arena) {
-        .alignment        = ARENA_DEFAULT_ALIGNMENT,
-        .size             = ARENA_DEFAULT_SIZE,
-        .should_overwrite = false,
+        .alignment         = Basic_valueOrItsDefault(description->alignment, ARENA_DEFAULT_ALIGNMENT),
+        .size              = Basic_valueOrItsDefault(description->size, ARENA_DEFAULT_SIZE),
+        .should_overwrite  = Basic_valueOrItsDefault(description->should_overwrite, false),
+        .backing_allocator = Basic_valueOrItsDefault(description->backing_allocator, null),
     };
 }
 
