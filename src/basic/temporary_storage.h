@@ -25,16 +25,12 @@ typedef struct {
     Allocator *backing_allocator;
 } TemporaryStorage;
 
-per_thread TemporaryStorage temporary_storage;
-per_thread Allocator        temporary_allocator;
+#if BUILD_ROOT
+    per_thread TemporaryStorage temporary_storage;
+    per_thread Allocator        temporary_storage_allocator;
+#endif
 
-core_function
-void TemporaryStorage_setAllocators(Allocator *allocator) {
-    temporary_storage.backing_allocator = allocator;
-}
-
-core_function
-void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+core_function void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     switch (mode) {
         case ALLOCATOR_MODE_FREE: {
             return cast(void *, cast(isize, true));
@@ -58,7 +54,7 @@ void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescripti
 
             ensure(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
 
-            if (temporary_storage.ptr == null) temporary_storage.ptr = allocUsingAllocator(temporary_storage.size, temporary_storage.backing_allocator);
+            if (temporary_storage.ptr == null) temporary_storage.ptr = allocWithAllocator(temporary_storage.size, temporary_storage.backing_allocator);
 
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
             u8    *chunk                  = temporary_storage.ptr + temporary_storage.occupied;
@@ -74,34 +70,32 @@ void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescripti
     unreachable();
 }
 
-core_function
-void TemporaryStorage_create(void) {
+core_function void TemporaryStorage_create(void) {
     temporary_storage = (TemporaryStorage) {
-        .alignment = TEMPORARY_STORAGE_DEFAULT_ALIGNMENT,
-        .size      = TEMPORARY_STORAGE_DEFAULT_SIZE,
+        .alignment         = TEMPORARY_STORAGE_DEFAULT_ALIGNMENT,
+        .size              = TEMPORARY_STORAGE_DEFAULT_SIZE,
+        .backing_allocator = context.allocator,
     };
 
-    temporary_allocator = (Allocator) {
+    temporary_storage_allocator = (Allocator) {
         .procedure = &TemporaryStorage_allocatorProcedure,
         // .impl      = cast(void *, &temporary_storage),
     };
 }
 
-core_function
-void TemporaryStorage_destroy(void) {
-    temporary_allocator = (Allocator) {
+core_function void TemporaryStorage_destroy(void) {
+    temporary_storage_allocator = (Allocator) {
         0,
     };
 
-    if (temporary_storage.ptr) freeUsingAllocator(temporary_storage.ptr, temporary_storage.backing_allocator);
+    if (temporary_storage.ptr) freeWithAllocator(temporary_storage.ptr, temporary_storage.backing_allocator);
 
     temporary_storage = (TemporaryStorage) {
         0,
     };
 }
 
-core_function
-void TemporaryStorage_reset(void) {
+core_function void TemporaryStorage_reset(void) {
     temporary_storage.last     = 0;
     temporary_storage.occupied = 0;
 }

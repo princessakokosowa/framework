@@ -76,8 +76,7 @@ typedef struct {
     for (isize flip = 0, index = 0; index < Array_count((array)); flip = !flip, index += 1) \
         for (__typeof((array)) value = (array) + index; flip != 1; flip = !flip)
 
-core_function
-void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set) {
+core_function void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set) {
     if (Array_count(array) + count_to_be_added > capacity_to_be_set) capacity_to_be_set = Array_count(array) + count_to_be_added;
     if (Array_capacity(array) >= capacity_to_be_set)                 return array;
 
@@ -91,8 +90,8 @@ void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_adde
     if (allocator == null) allocator = context.allocator;
 
     ArrayPreamble *preamble = null;
-    if (array == null) preamble = allocUsingAllocator(sizeof(ArrayPreamble) + size_of_backing_type * capacity_to_be_set, allocator);
-    else               preamble = resizeUsingAllocator(Array_castToPreamble(array), sizeof(ArrayPreamble) + size_of_backing_type * capacity_to_be_set, allocator);
+    if (array == null) preamble = allocWithAllocator(sizeof(ArrayPreamble) + size_of_backing_type * capacity_to_be_set, allocator);
+    else               preamble = resizeWithAllocator(Array_castToPreamble(array), sizeof(ArrayPreamble) + size_of_backing_type * capacity_to_be_set, allocator);
 
     *preamble = (ArrayPreamble) {
         .count     = count,
@@ -103,14 +102,13 @@ void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_adde
     return Preamble_castToArray(preamble);
 }
 
-core_function
-void *Array_initialiseWithAllocators(void *array, Allocator *allocator) {
+core_function void *Array_initialiseWithAllocators(void *array, Allocator *allocator) {
     ensure(array == null);
     ensure(allocator != null);
 
     isize size_of_backing_type = sizeof(isize);
 
-    ArrayPreamble *preamble = allocUsingAllocator(sizeof(ArrayPreamble) + size_of_backing_type * ARRAY_DEFAULT_CAPACITY, allocator);
+    ArrayPreamble *preamble = allocWithAllocator(sizeof(ArrayPreamble) + size_of_backing_type * ARRAY_DEFAULT_CAPACITY, allocator);
 
     *preamble = (ArrayPreamble) {
         .capacity  = ARRAY_DEFAULT_CAPACITY,
@@ -223,9 +221,8 @@ void *Array_initialiseWithAllocators(void *array, Allocator *allocator) {
         (array)[Array_castToPreamble((array))->count] \
     )
 
-core_function
-void Array_free(void *array) {
-    if (array != null) freeUsingAllocator(Array_castToPreamble(array), Array_allocator(array));
+core_function void Array_free(void *array) {
+    if (array != null) freeWithAllocator(Array_castToPreamble(array), Array_allocator(array));
 }
 
 #endif // INCLUDE_ARRAY_H

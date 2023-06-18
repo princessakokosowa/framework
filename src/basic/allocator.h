@@ -82,24 +82,46 @@ typedef struct {
     void               *impl;
 } Allocator;
 
+core_function void *Allocator_allocWithAllocator(isize type_size_times_count, Allocator *allocator) {
+    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
+        .size_to_be_allocated_or_resized = type_size_times_count,
+        .impl                            = allocator->impl,
+    });
 
-// @TODO
-// Consider moving this to context.h.
-//     ~ princessakokosowa, 17 June 2023
-core_function void *Context_alloc(isize type_size_times_count);
-core_function void *Context_resize(void *ptr, isize type_size_times_count);
-core_function void  Context_free(void *ptr);
+    ensure(maybe_ptr != null);
 
-core_function void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *allocator);
-core_function void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
-core_function void  Context_freeUsingAllocator(void *ptr, Allocator *allocator);
+    return maybe_ptr;
+}
 
-#define alloc                Context_alloc
-#define resize               Context_resize
-#define free                 Context_free
+core_function void *Allocator_resizeWithAllocator(void *ptr, isize type_size_times_count, Allocator *allocator) {
+    ensure(ptr != null);
 
-#define allocUsingAllocator  Context_allocUsingAllocator
-#define resizeUsingAllocator Context_resizeUsingAllocator
-#define freeUsingAllocator   Context_freeUsingAllocator
+    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
+        .ptr_to_be_resized_or_freed      = ptr,
+        .size_to_be_allocated_or_resized = type_size_times_count,
+        .impl                            = allocator->impl,
+    });
+
+    ensure(maybe_ptr != null);
+
+    return maybe_ptr;
+}
+
+core_function void Allocator_freeWithAllocator(void *ptr, Allocator *allocator) {
+    ensure(ptr != null);
+
+    void *result_but_ptr = allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
+        .ptr_to_be_resized_or_freed = ptr,
+        .impl                       = allocator->impl,
+    });
+
+    ensure(result_but_ptr != null);
+
+    (void) result_but_ptr;
+}
+
+#define allocWithAllocator  Allocator_allocWithAllocator
+#define resizeWithAllocator Allocator_resizeWithAllocator
+#define freeWithAllocator   Allocator_freeWithAllocator
 
 #endif // INCLUDE_ALLOCATOR_H

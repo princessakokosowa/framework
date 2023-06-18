@@ -1,15 +1,13 @@
-#include "basic.h"
+#include "basic/basic.h"
 
-function
-f64 Math_square(f64 a)
+function f64 Math_square(f64 a)
 {
     f64 result = a * a;
 
     return result;
 }
 
-function
-f64 Haversine_radiansFromDegrees(f64 degrees)
+function f64 Haversine_radiansFromDegrees(f64 degrees)
 {
     f64 result = 0.01745329251994329577 * degrees;
 
@@ -18,8 +16,7 @@ f64 Haversine_radiansFromDegrees(f64 degrees)
 
 #define USIZE_MAX ~0ull
 
-function
-f64 Haversine_calculateDistance(f64 longitude_0, f64 latitude_0, f64 longitude_1, f64 latitude_1, f64 earth_radius)
+function f64 Haversine_calculateDistance(f64 longitude_0, f64 latitude_0, f64 longitude_1, f64 latitude_1, f64 earth_radius)
 {
     f64 d_latitude  = Haversine_radiansFromDegrees(latitude_1 - latitude_0);
     f64 d_longitude = Haversine_radiansFromDegrees(longitude_1 - longitude_0);
@@ -41,15 +38,13 @@ typedef struct {
     usize d;
 } Series;
 
-function
-usize Series_rotateLeft(usize value, usize shift) {
+function usize Series_rotateLeft(usize value, usize shift) {
     usize result = (value << shift) | (value >> (64 - shift));
 
     return result;
 }
 
-function
-usize Series_getRandom(Series *series) {
+function usize Series_getRandom(Series *series) {
     usize e = series->a - Series_rotateLeft(series->b, 27);
 
     series->a = series->b ^ Series_rotateLeft(series->c, 17);
@@ -60,8 +55,7 @@ usize Series_getRandom(Series *series) {
     return series->d;
 }
 
-function
-Series Series_createAndApplySeed(usize value) {
+function Series Series_createAndApplySeed(usize value) {
     Series series = (Series) {
         .a = 0xf1ea5eed,
         .b = value,
@@ -77,16 +71,14 @@ Series Series_createAndApplySeed(usize value) {
     return series;
 }
 
-function
-f64 Series_generateRandomInRange(Series *series, f64 value_min, f64 value_max) {
+function f64 Series_generateRandomInRange(Series *series, f64 value_min, f64 value_max) {
     f64 t      = cast(f64, Series_getRandom(series)) / cast(f64, USIZE_MAX);
     f64 result = (1.0 - t) * value_min + t * value_max;
     
     return result;
 }
 
-function
-f64 Series_generateRandomDegree(Series *series, f64 center, f64 radius, f64 value_max_allowed)
+function f64 Series_generateRandomDegree(Series *series, f64 center, f64 radius, f64 value_max_allowed)
 {
     f64 value_min = center - radius;
     if (value_min < -value_max_allowed) {
@@ -113,8 +105,7 @@ f64 Series_generateRandomDegree(Series *series, f64 center, f64 radius, f64 valu
 #define USE_CLUSTER                  false
 #define COUNT_FOR_CLUSTER_TO_KICK_IN 0
 
-function
-void HaversineTests_test(void) {
+function void HaversineTests_test(void) {
     #if USE_CLUSTER == false
         // @NOTE
         // This means that we are very unlikely to ever reach 

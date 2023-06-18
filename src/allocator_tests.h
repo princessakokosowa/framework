@@ -1,12 +1,11 @@
 #ifndef INCLUDE_ALLOCATOR_TESTS_H
 #define INCLUDE_ALLOCATOR_TESTS_H
 
-#include "basic.h"
+#include "basic/basic.h"
 
 #include "arena.h"
 
-function
-isize CString_count(u8 *c_string) {
+function isize cstringCount(u8 *c_string) {
     isize count = 0;
     while (*c_string) {
         c_string += 1;
@@ -16,9 +15,8 @@ isize CString_count(u8 *c_string) {
     return count;
 }
 
-function
-void CString_copy(u8 *destination, u8 *source) {
-    isize source_count = CString_count(source);
+function void cstringCopy(u8 *destination, u8 *source) {
+    isize source_count = cstringCount(source);
 
     Memory_rawCopy(destination, source, source_count);
 
@@ -27,8 +25,7 @@ void CString_copy(u8 *destination, u8 *source) {
 
 #define BUFFER_COUNT 64
 
-function
-void AllocatorTests_test(void) {
+function void AllocatorTests_test(void) {
     // Create some sort of memory pool (here: `Arena`).
     {
         Arena arena = Arena_create(&(ArenaDescription) { 0, });
@@ -47,7 +44,7 @@ void AllocatorTests_test(void) {
             };
 
             for (isize i = 0; i < arrayCount(strings); i += 1) {
-                CString_copy(buf, cast(u8 *, strings[i]));
+                cstringCopy(buf, cast(u8 *, strings[i]));
 
                 printf("%s\n", buf);
             }
@@ -72,7 +69,7 @@ void AllocatorTests_test(void) {
             };
 
             for (isize i = 0; i < arrayCount(strings); i += 1) {
-                CString_copy(buf, cast(u8 *, strings[i]));
+                cstringCopy(buf, cast(u8 *, strings[i]));
 
                 printf("%s\n", buf);
             }
@@ -96,7 +93,7 @@ void AllocatorTests_test(void) {
             };
 
             for (isize i = 0; i < arrayCount(strings); i += 1) {
-                CString_copy(buf, cast(u8 *, strings[i]));
+                cstringCopy(buf, cast(u8 *, strings[i]));
 
                 printf("%s\n", buf);
             }
@@ -110,7 +107,7 @@ void AllocatorTests_test(void) {
     // Set `Context` allocators, similarly to how this is done in the previous scope,
     // but using predefined temporary allocator (and its temporary storage).
     {
-        Context_setAllocators(&temporary_allocator);
+        Context_setAllocators(&temporary_storage_allocator);
 
         isize buf_size  = sizeof(u8) * BUFFER_COUNT;
         u8    *buf      = alloc(buf_size);
@@ -123,7 +120,7 @@ void AllocatorTests_test(void) {
         };
 
         for (isize i = 0; i < arrayCount(strings); i += 1) {
-            CString_copy(buf, cast(u8 *, strings[i]));
+            cstringCopy(buf, cast(u8 *, strings[i]));
 
             printf("%s\n", buf);
         }
@@ -148,7 +145,7 @@ void AllocatorTests_test(void) {
         };
 
         for (isize i = 0; i < arrayCount(strings); i += 1) {
-            CString_copy(buf, cast(u8 *, strings[i]));
+            cstringCopy(buf, cast(u8 *, strings[i]));
 
             printf("%s\n", buf);
         }

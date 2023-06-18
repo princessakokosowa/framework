@@ -1,7 +1,7 @@
 #ifndef INCLUDE_ARENA_H
 #define INCLUDE_ARENA_H
 
-#include "basic.h"
+#include "basic/basic.h"
 
 enum {
     ARENA_DEFAULT_SIZE      = 65536,
@@ -30,13 +30,11 @@ typedef struct {
     Allocator *backing_allocator;
 } Arena;
 
-function
-void Arena_setAllocators(Arena *arena, Allocator *allocator) {
+function void Arena_setAllocators(Arena *arena, Allocator *allocator) {
     arena->backing_allocator = allocator;
 }
 
-function
-void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+function void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     ensure(description->impl != null);
 
     Arena *arena = cast(Arena *, description->impl);
@@ -69,7 +67,7 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
                 else                                       Arena_setAllocators(arena, context.allocator);
             }
 
-            if (arena->ptr == null) arena->ptr = allocUsingAllocator(arena->size, arena->backing_allocator);
+            if (arena->ptr == null) arena->ptr = allocWithAllocator(arena->size, arena->backing_allocator);
 
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
             u8    *chunk                  = arena->ptr + arena->occupied;
@@ -85,8 +83,7 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
     unreachable();
 }
 
-function
-Arena Arena_create(ArenaDescription *description) {
+function Arena Arena_create(ArenaDescription *description) {
     return (Arena) {
         .alignment         = description->alignment ? description->alignment : ARENA_DEFAULT_ALIGNMENT,
         .size              = description->size      ? description->size      : ARENA_DEFAULT_SIZE,
@@ -95,25 +92,22 @@ Arena Arena_create(ArenaDescription *description) {
     };
 }
 
-function
-void Arena_destroy(Arena *arena) {
-    if (arena->ptr != null) freeUsingAllocator(arena->ptr, arena->backing_allocator);
+function void Arena_destroy(Arena *arena) {
+    if (arena->ptr != null) freeWithAllocator(arena->ptr, arena->backing_allocator);
 
     *arena = (Arena) {
         0,
     };
 }
 
-function
-void *Arena_get(Arena *arena, isize type_size_times_count) {
+function void *Arena_get(Arena *arena, isize type_size_times_count) {
     return Arena_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = cast(void *, arena),
     });
 }
 
-function
-Allocator Arena_getAllocator(Arena *arena) {
+function Allocator Arena_getAllocator(Arena *arena) {
     return (Allocator) {
         .procedure = Arena_allocatorProcedure,
         .impl      = cast(void *, arena),

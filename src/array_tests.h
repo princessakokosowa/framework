@@ -1,12 +1,11 @@
 #ifndef INCLUDE_ARRAY_TESTS_H
 #define INCLUDE_ARRAY_TESTS_H
 
-#include "basic.h"
+#include "basic/basic.h"
 
 #include "arena.h"
 
-function
-void ArrayTests_test(void) {
+function void ArrayTests_test(void) {
     {
         f32 *array = null;
         Array_add(array, 334);
@@ -18,7 +17,7 @@ void ArrayTests_test(void) {
     }
 
     {
-        Context_setAllocators(&temporary_allocator);
+        Context_setAllocators(&temporary_storage_allocator);
 
         f32 *array = null;
         Array_add(array, 334);
@@ -111,7 +110,7 @@ void ArrayTests_test(void) {
 
         {
             Array_removeByValue(array, 0.f);
-            Array_removeAtIndex(array, 0);
+            Array_removeAtIndex(array, 1);
             printf("Removed 0.f by value and a value at 0th index, but in a unordered way and therefore, the order has not been perserved!\n");
 
             forEachByIndex(array) {

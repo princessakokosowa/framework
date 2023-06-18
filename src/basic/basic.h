@@ -1,8 +1,9 @@
 #ifndef INCLUDE_BASIC_H
 #define INCLUDE_BASIC_H
 
-#include <stdio.h>
-#include <stdarg.h>
+#include "stdio.h"
+#include "stdarg.h"
+#include "stdlib.h"
 
 // Move that to the build script.
 #define BUILD_CORE_LINK_MODE BUILD_LINK_MODE_SOURCE
@@ -10,9 +11,8 @@
 ////////////////////////////////
 // Basic headers
 
-#include "basic_build.h"
-#include "basic_types.h"
-#include "basic_os.h"
+#include "build.h"
+#include "types.h"
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 attribute_cold
@@ -42,13 +42,16 @@ void prv_assert(bool condition, const char *file, int line, const char *func) {
 #define unreachable() prv_panic("Unreachable at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-#include "basic_allocator.h"
-#include "basic_temporary_storage.h"
-#include "basic_context.h"
-#include "basic_memory.h"
-#include "basic_array.h"
+#include "os/os.h"
+
+#include "allocator.h"
+#include "context.h"
+#include "temporary_storage.h"
+#include "memory.h"
+#include "array.h"
 #include "math.h" // Windows-provided, @TODO make self.
-#include "basic_thread.h"
-#include "basic_entry_point.h"
+#include "thread.h"
+
+#include "os/os_entry_point.h"
 
 #endif // INCLUDE_BASIC_H
