@@ -1,0 +1,3 @@
+[submodule "lib/directx-headers"]
+	path = lib/directx-headers
+	url = https://github.com/princessakokosowa/DirectX-Headers.git
