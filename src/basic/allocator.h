@@ -1,57 +1,29 @@
-#ifndef INCLUDE_ALLOCATOR_H
-#define INCLUDE_ALLOCATOR_H
+#ifndef ALLOCATOR_H
+#define ALLOCATOR_H
 
 enum {
     ALLOCATOR_ALIGNMENT = 8,
 };
 
-core_function isize align(isize size, isize alignment) {
-    isize mask = ~(alignment - 1);
-    isize _    = size + (alignment - 1);
+core_function isize Allocator_align(isize size, isize alignment);
+core_function isize Allocator_alignPtr(u8 *ptr, isize alignment);
 
-    return _ & mask;
-}
-
-/*
-core_function
-isize alignPtr(u8 *ptr, isize alignment) {
-    isize mask   = alignment - 1;
-    isize offset = cast(isize, ptr) & mask;
-    isize _      = alignment - offset;
-
-    return _ & mask;
-}
-*/
-
-// @TODO
-// Allocators, in addition, of course, to such basic modes, viz:
-//     * ALLOCATOR_MODE_ALLOCATE
-//     * ALLOCATOR_MODE_RESIZE
-//     * ALLOCATOR_MODE_FREE
-//
-// There should be a bit more status here that, among other things, tells you whether the
-// allocator is active, whether it has yet to be activated, etc. etc. and I can think of
-// modes such as:
-//    * ALLOCATOR_MODE_STARTUP
-//    * ALLOCATOR_MODE_SHUTDOWN
-//
-//    * ALLOCATOR_MODE_THREAD_START
-//    * ALLOCATOR_MODE_THREAD_STOP
-//
-//    * ALLOCATOR_MODE_CREATE_HEAP
-//    * ALLOCATOR_MODE_DESTROY_HEAP
-//
-//    * ALLOCATOR_MODE_IS_THIS_YOURS
-//    * ALLOCATOR_MODE_CAPS
-//
-// In addition to this, allocator capabilities should probably be added, but I do not
-// even want to think at the moment about what they would be and GENERALLY how to define
-// and stitch it all together.
-//     ~ princessakokosowa, 10th of March 2023
 typedef enum {
-    ALLOCATOR_MODE_ALLOCATE = 0,
-    ALLOCATOR_MODE_RESIZE   = 1,
-    ALLOCATOR_MODE_FREE     = 2,
+    ALLOCATOR_MODE_ALLOCATE      = 0,
+    ALLOCATOR_MODE_RESIZE        = 1,
+    ALLOCATOR_MODE_FREE          = 2,
+
+    ALLOCATOR_MODE_STARTUP       = 4,
+    ALLOCATOR_MODE_SHUTDOWN      = 5,
+
+    ALLOCATOR_MODE_THREAD_START  = 6,
+    ALLOCATOR_MODE_THREAD_STOP   = 7,
+
+    ALLOCATOR_MODE_CREATE_HEAP   = 8,
+    ALLOCATOR_MODE_DESTROY_HEAP  = 9,
+
+    ALLOCATOR_MODE_IS_THIS_YOURS = 10,
+    ALLOCATOR_MODE_CAPS          = 11,
 } AllocatorMode;
 
 typedef struct {
@@ -70,8 +42,7 @@ typedef struct {
     // In case of ALLOCATOR_MODE_FREE this argument is the pointer that needs to be freed.
     void *ptr_to_be_resized_or_freed;
 
-    // @TODO
-    // Write a description for that.
+    // A pointer to the implementation of an allocator.
     void *impl;
 } AllocatorDescription;
 
@@ -82,46 +53,12 @@ typedef struct {
     void               *impl;
 } Allocator;
 
-core_function void *Allocator_allocWithAllocator(isize type_size_times_count, Allocator *allocator) {
-    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
-        .size_to_be_allocated_or_resized = type_size_times_count,
-        .impl                            = allocator->impl,
-    });
-
-    ensure(maybe_ptr != null);
-
-    return maybe_ptr;
-}
-
-core_function void *Allocator_resizeWithAllocator(void *ptr, isize type_size_times_count, Allocator *allocator) {
-    ensure(ptr != null);
-
-    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
-        .ptr_to_be_resized_or_freed      = ptr,
-        .size_to_be_allocated_or_resized = type_size_times_count,
-        .impl                            = allocator->impl,
-    });
-
-    ensure(maybe_ptr != null);
-
-    return maybe_ptr;
-}
-
-core_function void Allocator_freeWithAllocator(void *ptr, Allocator *allocator) {
-    ensure(ptr != null);
-
-    void *result_but_ptr = allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
-        .ptr_to_be_resized_or_freed = ptr,
-        .impl                       = allocator->impl,
-    });
-
-    ensure(result_but_ptr != null);
-
-    (void) result_but_ptr;
-}
+core_function void *Allocator_allocWithAllocator(isize type_size_times_count, Allocator *allocator);
+core_function void *Allocator_resizeWithAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
+core_function void Allocator_freeWithAllocator(void *ptr, Allocator *allocator);
 
 #define allocWithAllocator  Allocator_allocWithAllocator
 #define resizeWithAllocator Allocator_resizeWithAllocator
 #define freeWithAllocator   Allocator_freeWithAllocator
 
-#endif // INCLUDE_ALLOCATOR_H
+#endif // ALLOCATOR_H

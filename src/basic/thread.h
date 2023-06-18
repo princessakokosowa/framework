@@ -13,32 +13,8 @@ typedef struct {
     bool is_main_thread;
 } Thread;
 
-#if BUILD_ROOT
-    per_thread Thread thread;
-#endif
-
-core_function void Thread_create(void) {
-    thread = (Thread) {
-        .is_main_thread = true,
-    };
-}
-
-core_function void Thread_destroy(void) {
-    thread = (Thread) {
-        0,
-    };
-}
-
-core_function void Thread_mainEntryPoint(void (*entry)(void), usize argument_count, char **arguments) {
-    Context_create();
-    TemporaryStorage_create();
-    Thread_create();
-
-    entry();
-
-    Thread_destroy();
-    TemporaryStorage_destroy();
-    Context_destroy();
-}
+core_function void Thread_create(void);
+core_function void Thread_destroy(void);
+core_function void Thread_mainEntryPoint(void (*entry)(void), usize argument_count, char **arguments);
 
 #endif // THREAD_H

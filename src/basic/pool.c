@@ -1,56 +1,8 @@
-#ifndef INCLUDE_POOL_H
-#define INCLUDE_POOL_H
-
-#include "basic.h"
-
-typedef struct Block Block;
-struct Block {
-    Block *next;
-    void  *ptr;
-};
-
-enum {
-    POOL_DEFAULT_BUCKET_SIZE                      = 65536,
-    POOL_DEFAULT_SINGLE_ALLOCATION_IN_BUCKET_SIZE = 6554,
-    POOL_DEFAULT_ALIGNMENT                        = 8,
-
-    POOL_STAMP                                    = 0xCD,
-};
-
-typedef struct {
-    isize bucket_size;
-    isize single_allocation_in_bucket_size;
-    isize alignment;
-
-    bool should_overwrite_blocks;
-    bool should_free_blocks_on_reset;
-} PoolDescription;
-
-typedef struct {
-    isize bucket_size;
-    isize single_allocation_in_bucket_size;
-    isize alignment;
-
-    isize left;
-    Block *current_block;
-    u8    *current_ptr;
-
-    Block *unused_blocks;
-    Block *used_blocks;
-    Block *first_used_memblock;
-    Block *out_of_bounds_allocations;
-
-    bool should_overwrite_blocks;
-    bool should_free_blocks_on_reset;
-
-    Allocator *backing_allocator;
-} Pool;
-
-function void Pool_setAllocators(Pool *pool, Allocator *allocator) {
+core_function void Pool_setAllocators(Pool *pool, Allocator *allocator) {
     pool->backing_allocator = allocator;
 }
 
-function void Pool_makeAndSwapBlocks(Pool *pool) {
+core_function void Pool_makeAndSwapBlocks(Pool *pool) {
     Block *new_block;
     if (pool->unused_blocks != null) {
         new_block           = pool->unused_blocks;
@@ -70,12 +22,24 @@ function void Pool_makeAndSwapBlocks(Pool *pool) {
     pool->current_ptr   = pool->current_block->ptr;
 }
 
-function void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
+core_function void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     ensure(description->impl != null);
 
     Pool *pool = cast(Pool*, description->impl);
 
     switch (mode) {
+        case ALLOCATOR_MODE_STARTUP: through
+        case ALLOCATOR_MODE_SHUTDOWN: through
+
+        case ALLOCATOR_MODE_THREAD_START: through
+        case ALLOCATOR_MODE_THREAD_STOP: through
+
+        case ALLOCATOR_MODE_CREATE_HEAP: through
+        case ALLOCATOR_MODE_DESTROY_HEAP: through
+
+        case ALLOCATOR_MODE_IS_THIS_YOURS: through
+        case ALLOCATOR_MODE_CAPS: through
+
         case ALLOCATOR_MODE_FREE: {
             return cast(void*, cast(isize, true));
         } break;
@@ -105,13 +69,13 @@ function void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription 
                 return chunk;
             }
 
-            isize aligned_ptr_position                = alignPtr(pool->current_ptr, pool->alignment);
+            isize aligned_ptr_position                = Allocator_alignPtr(pool->current_ptr, pool->alignment);
             bool  is_there_enough_space_left_in_block = pool->left > description->size_to_be_allocated_or_resized + sizeof(Block) + aligned_ptr_position;
             if (is_there_enough_space_left_in_block == false) {
                 Pool_makeAndSwapBlocks(pool);
 
                 if (pool->current_block == null) return null;
-                aligned_ptr_position = alignPtr(pool->current_ptr, pool->alignment);
+                aligned_ptr_position = Allocator_alignPtr(pool->current_ptr, pool->alignment);
             }
 
             u8 *chunk         =  pool->current_ptr + aligned_ptr_position;
@@ -124,10 +88,10 @@ function void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription 
         } break;
     }
 
-    Basic_unreachable();
+    unreachable();
 }
 
-function Pool Pool_create(PoolDescription *description) {
+core_function Pool Pool_create(PoolDescription *description) {
     return (Pool) {
         .bucket_size                      = POOL_DEFAULT_BUCKET_SIZE,
         .single_allocation_in_bucket_size = POOL_DEFAULT_SINGLE_ALLOCATION_IN_BUCKET_SIZE,
@@ -137,24 +101,22 @@ function Pool Pool_create(PoolDescription *description) {
     };
 }
 
-function void Pool_destroy(Pool *pool) {
+core_function void Pool_destroy(Pool *pool) {
     *pool = (Pool) {
         0,
     };
 }
 
-function void *Pool_get(Pool *pool, isize type_size_times_count) {
+core_function void *Pool_get(Pool *pool, isize type_size_times_count) {
     return Pool_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = cast(void *, pool),
     });
 }
 
-function Allocator Pool_getAllocator(Pool *pool) {
+core_function Allocator Pool_getAllocator(Pool *pool) {
     return (Allocator) {
         .procedure = Pool_allocatorProcedure,
         .impl      = cast(void *, pool),
     };
 }
-
-#endif // INCLUDE_POOL_H

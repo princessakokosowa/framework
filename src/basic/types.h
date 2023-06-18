@@ -1,5 +1,5 @@
-#ifndef BASIC_TYPES_H
-#define BASIC_TYPES_H
+#ifndef TYPES_H
+#define TYPES_H
 
 ////////////////////////////////
 // Macros
@@ -290,4 +290,4 @@ read_only global u64 F64_MANTISSA = 0xFFFFFFFFFFFFFull;
 #define notImplemented assert(!"Not Implemented")
 #define invalidPath    assert(!"Invalid Path")
 
-#endif // BASIC_TYPES_H
+#endif // TYPES_H

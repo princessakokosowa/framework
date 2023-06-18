@@ -1,5 +1,5 @@
-#ifndef INCLUDE_CONTEXT_H
-#define INCLUDE_CONTEXT_H
+#ifndef CONTEXT_H
+#define CONTEXT_H
 
 enum {
     MAX_REMEMBERED_LIST_COUNT = 128,
@@ -12,66 +12,17 @@ typedef struct {
     Allocator *allocator;
 } Context;
 
-#if BUILD_ROOT
-    per_thread Context context;
-#endif
+core_function void *Default_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description);
 
-core_function void *Default_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
-    if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void *,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
-    else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void *,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
-    else if (mode == ALLOCATOR_MODE_FREE)     return cast(void *, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
+core_function void Context_create(void);
+core_function void Context_destroy(void);
+core_function void Context_rememberAllocators(void);
+core_function void Context_setAllocators(Allocator *allocator);
+core_function void Context_remindAllocators(void);
 
-    unreachable();
-}
-
-Allocator default_allocator = (Allocator) {
-    .procedure = &Default_allocatorProcedure,
-};
-
-core_function void Context_create(void) {
-    context = (Context) {
-        .allocator = &default_allocator,
-    };
-}
-
-core_function void Context_destroy(void) {
-    context = (Context) {
-        0,
-    };
-}
-
-core_function void Context_rememberAllocators(void) {
-    ensure(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
-
-    context.remembered_list[context.remembered_count] = context.allocator;
-    context.remembered_count                          += 1;
-}
-
-core_function void Context_setAllocators(Allocator *allocator) {
-    Context_rememberAllocators();
-
-    context.allocator = allocator;
-}
-
-core_function void Context_remindAllocators(void) {
-    ensure(context.remembered_count != 0);
-
-    context.remembered_count                          -= 1;
-    context.allocator                                 = context.remembered_list[context.remembered_count];
-    context.remembered_list[context.remembered_count] = null;
-}
-
-core_function void *Context_alloc(isize type_size_times_count) {
-    return Allocator_allocWithAllocator(type_size_times_count, context.allocator);
-}
-
-core_function void *Context_resize(void *ptr, isize type_size_times_count) {
-    return Allocator_resizeWithAllocator(ptr, type_size_times_count, context.allocator);
-}
-
-core_function void Context_free(void *ptr) {
-    Allocator_freeWithAllocator(ptr, context.allocator);
-}
+core_function void *Context_alloc(isize type_size_times_count);
+core_function void *Context_resize(void *ptr, isize type_size_times_count);
+core_function void Context_free(void *ptr);
 
 #define alloc  Context_alloc
 #define resize Context_resize
@@ -91,4 +42,4 @@ core_function void Context_free(void *ptr) {
 #endif
 */
 
-#endif // INCLUDE_CONTEXT_H
+#endif // CONTEXT_H

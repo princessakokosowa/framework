@@ -1,6 +1,13 @@
-#include "allocator_tests.h"
-#include "array_tests.h"
-#include "haversine_tests.h"
+////////////////////////////////
+// Includes, unity build
+
+// headers
+#include "basic/basic.h"
+#include "tests/tests.h"
+
+// sources
+#include "basic/basic.c"
+#include "tests/tests.c"
 
 core_function void entryPoint(void) {
     AllocatorTests_test();
