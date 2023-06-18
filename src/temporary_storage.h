@@ -4,13 +4,18 @@
 #include "basic.h"
 #include "allocator.h"
 
-#define OVERFLOW_PAGE_COUNT 32768
+enum {
+    OVERFLOW_PAGE_COUNT = 32768,
+};
+
 typedef struct {
-    u8 *ptr_to_heap;
+    u8 *ptr;
 } OverflowPage;
 
-#define TEMPORARY_STORAGE_DEFAULT_SIZE      32768
-#define TEMPORARY_STORAGE_DEFAULT_ALIGNMENT 8
+enum {
+    TEMPORARY_STORAGE_DEFAULT_SIZE      = 32768,
+    TEMPORARY_STORAGE_DEFAULT_ALIGNMENT = 8,
+};
 
 typedef struct {
     isize alignment;
@@ -40,7 +45,7 @@ void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescripti
         // We had this split.
         //
         //     case ALLOCATOR_MODE_RESIZE: {
-        //         assert(description->ptr_to_be_resized_or_freed != null);
+        //         Basic_assert(description->ptr_to_be_resized_or_freed != null);
         //     
         //         bool is_this_the_previous_allocation = temporary_storage.ptr + temporary_storage.last == cast(u8*, description->ptr_to_be_resized_or_freed);
         //         if (is_this_the_previous_allocation == true) {
@@ -48,14 +53,14 @@ void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescripti
         //             isize allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
         //             isize aligned_allocation_size  = align(allocation_size, ALLOCATOR_ALIGNMENT);
         //     
-        //             assert(temporary_storage.occupied + aligned_allocation_size <= temporary_storage.size);
+        //             Basic_assert(temporary_storage.occupied + aligned_allocation_size <= temporary_storage.size);
         //     
         //             temporary_storage.occupied += aligned_allocation_size;
         //     
         //             return description->ptr_to_be_resized_or_freed;
         //         }
         //     
-        //         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
+        //         Basic_assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
         //     
         //         isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
         //         u8    *chunk                  = temporary_storage.ptr + temporary_storage.occupied;
@@ -65,7 +70,7 @@ void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescripti
         //     
         //     } break;
         //     case ALLOCATOR_MODE_ALLOCATE: {
-        //         assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
+        //         Basic_assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
         //     
         //         if (temporary_storage.backing_allocator == null) {
         //             bool are_we_already_set_in_context = context.allocator->impl == arena;
@@ -95,28 +100,29 @@ void *TemporaryStorage_allocatorProcedure(AllocatorMode mode, AllocatorDescripti
                 isize allocation_size          = description->size_to_be_allocated_or_resized - previous_allocation_size;
                 isize aligned_allocation_size  = align(allocation_size, ALLOCATOR_ALIGNMENT);
 
-                assert(temporary_storage.occupied + aligned_allocation_size <= temporary_storage.size);
+                Basic_assert(temporary_storage.occupied + aligned_allocation_size <= temporary_storage.size);
 
                 temporary_storage.occupied += aligned_allocation_size;
 
                 return description->ptr_to_be_resized_or_freed;
             }
 
-            assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
+            Basic_assert(temporary_storage.occupied + description->size_to_be_allocated_or_resized <= temporary_storage.size);
 
             if (temporary_storage.ptr == null) temporary_storage.ptr = allocUsingAllocator(temporary_storage.size, temporary_storage.backing_allocator);
 
             isize aligned_allocation_size = align(description->size_to_be_allocated_or_resized, ALLOCATOR_ALIGNMENT);
             u8    *chunk                  = temporary_storage.ptr + temporary_storage.occupied;
 
-            if (!is_that_resize) temporary_storage.last = temporary_storage.occupied;
+            if (is_that_resize == false) temporary_storage.last = temporary_storage.occupied;
+
             temporary_storage.occupied += aligned_allocation_size;
 
             return chunk;
         } break;
     }
 
-    unreachable();
+    Basic_unreachable();
 }
 
 void TemporaryStorage_create(void) {
@@ -136,7 +142,7 @@ void TemporaryStorage_destroy(void) {
         0,
     };
 
-    freeUsingAllocator(temporary_storage.ptr, temporary_storage.backing_allocator);
+    if (temporary_storage.ptr) freeUsingAllocator(temporary_storage.ptr, temporary_storage.backing_allocator);
 
     temporary_storage = (TemporaryStorage) {
         0,
