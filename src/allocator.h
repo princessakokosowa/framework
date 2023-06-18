@@ -3,7 +3,10 @@
 
 #include "basic.h"
 
-#define ALLOCATOR_ALIGNMENT 8
+enum {
+    ALLOCATOR_ALIGNMENT = 8,
+};
+
 static inline isize align(isize size, isize alignment) {
     isize mask = ~(alignment - 1);
     isize _    = size + (alignment - 1);
@@ -78,20 +81,24 @@ typedef struct {
     void               *impl;
 } Allocator;
 
-void *_alloc(isize type_size_times_count);
-void *_resize(void *ptr, isize type_size_times_count);
-void  _free(void *ptr);
 
-void *_allocUsingAllocator(isize type_size_times_count, Allocator *allocator);
-void *_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
-void  _freeUsingAllocator(void *ptr, Allocator *allocator);
+// @TODO
+// Consider moving this to context.h.
+//     ~ mmacieje, 17 June 2023
+void *Context_alloc(isize type_size_times_count);
+void *Context_resize(void *ptr, isize type_size_times_count);
+void  Context_free(void *ptr);
 
-#define alloc                _alloc
-#define resize               _resize
-#define free                 _free
+void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *allocator);
+void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
+void  Context_freeUsingAllocator(void *ptr, Allocator *allocator);
 
-#define allocUsingAllocator  _allocUsingAllocator
-#define resizeUsingAllocator _resizeUsingAllocator
-#define freeUsingAllocator   _freeUsingAllocator
+#define alloc                Context_alloc
+#define resize               Context_resize
+#define free                 Context_free
+
+#define allocUsingAllocator  Context_allocUsingAllocator
+#define resizeUsingAllocator Context_resizeUsingAllocator
+#define freeUsingAllocator   Context_freeUsingAllocator
 
 #endif // INCLUDE_ALLOCATOR_H
