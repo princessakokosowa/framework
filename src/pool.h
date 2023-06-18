@@ -10,11 +10,13 @@ struct Block {
     void  *ptr;
 };
 
-#define POOL_DEFAULT_BUCKET_SIZE                      65536
-#define POOL_DEFAULT_SINGLE_ALLOCATION_IN_BUCKET_SIZE 6554
-#define POOL_DEFAULT_ALIGNMENT                        8
+enum {
+    POOL_DEFAULT_BUCKET_SIZE                      = 65536,
+    POOL_DEFAULT_SINGLE_ALLOCATION_IN_BUCKET_SIZE = 6554,
+    POOL_DEFAULT_ALIGNMENT                        = 8,
 
-#define POOL_STAMP                                    0xCD
+    POOL_STAMP                                    = 0xCD,
+};
 
 typedef struct {
     isize bucket_size;
@@ -71,6 +73,7 @@ void DEPRECATED__Pool_makeAndSwapBlocks(Pool *pool) {
 
 void *DEPRECATED_Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     assert(description->impl != null);
+
     Pool *pool = cast(Pool*, description->impl);
 
     switch (mode) {
@@ -122,7 +125,7 @@ void *DEPRECATED_Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescriptio
         } break;
     }
 
-    unreachable();
+    Basic_unreachable();
 }
 
 Pool DEPRECATED_Pool_create(PoolDescription *description) {
