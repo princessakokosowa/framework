@@ -112,13 +112,23 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const exe = b.addExecutable(.{
-        .name     = "gpu",
+        .name = "framework",
         // .root_source_file = .{ .path = "src/main.c" },
-        .target   = target,
+        .target = target,
         .optimize = optimize,
     });
 
     {
+        // const zig_directx_headers = b.dependency("zig_directx_headers", .{
+        //     .target = target,
+        //     .optimize = .ReleaseFast,
+        // });
+
+        // const directx_guids = zig_directx_headers.artifact("DirectX-Guids")
+        // const directx_headers = zig_directx_headers.artifact("DirectX-Headers")
+        // 
+        // exe.linkLibrary(directx_guids);
+        // exe.linkLibrary(directx_headers);
         exe.linkLibC();
 
         // Apparently there is a bug regarding pkg-config (I have no idea what it is
@@ -166,6 +176,9 @@ pub fn build(b: *std.Build) !void {
             "-g",
             "-pedantic",
             "-std=c17",
+
+            // "-Wno-for-loop-analysis",
+            // "-Wno-uninitialized",
         });
     }
 
