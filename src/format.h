@@ -1,7 +1,9 @@
 #ifndef INCLUDE_FORMAT_H
 #define INCLUDE_FORMAT_H
 
-#defien BINARY_BUFFER_COUNT 65
+enum {
+    BINARY_BUFFER_COUNT = 65,
+};
 
 typedef struct {
     char buffer[BINARY_BUFFER_COUNT];
