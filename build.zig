@@ -113,7 +113,7 @@ pub fn build(b: *std.Build) !void {
 
     const exe = b.addExecutable(.{
         .name = "framework",
-        // .root_source_file = .{ .path = "src/main.c" },
+        // .root_source_file = .{ .path = "src/app.c" },
         .target = target,
         .optimize = optimize,
     });
@@ -150,7 +150,7 @@ pub fn build(b: *std.Build) !void {
 
         exe.addIncludePath("src");
         exe.addCSourceFiles(&.{
-            "src/main.c",
+            "src/app.c",
         }, &.{
             // Warnings and errors.
             "-Wall",

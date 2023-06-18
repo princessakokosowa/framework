@@ -2,10 +2,9 @@
 #include "array_tests.h"
 #include "haversine_tests.h"
 
-int main(void) {
+core_function
+void entryPoint(void) {
     AllocatorTests_test();
     ArrayTests_test();
     HaversineTests_test();
-
-    return 0;
 }
