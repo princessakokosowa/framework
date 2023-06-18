@@ -9,7 +9,11 @@
 // deeper than 32 procedure calls, or maybe it will? I don't know, man, but let's go that
 // way and see whether it works for that use case.
 //     ~ princessakokosowa, 3rd of April 2023
-#define MAX_REMEMBERED_LIST_COUNT 32
+
+enum {
+    MAX_REMEMBERED_LIST_COUNT = 128,
+};
+
 typedef struct {
     isize     remembered_count;
     Allocator *remembered_list[MAX_REMEMBERED_LIST_COUNT];
@@ -24,7 +28,7 @@ void *Default_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descr
     else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void *,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_FREE)     return cast(void *, cast(i64, HeapFree(   GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed)                                             )));
 
-    unreachable();
+    Basic_unreachable();
 }
 
 Allocator default_allocator = (Allocator) {
@@ -41,7 +45,7 @@ void Context_create(void) {
 }
 
 void Context_rememberAllocators(void) {
-    assert(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
+    Basic_assert(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
 
     context.remembered_list[context.remembered_count] = context.allocator;
     context.remembered_count                          += 1;
@@ -77,27 +81,27 @@ void Context_destroy(void) {
 //
 // If this turns out to be annoying, it will be imminently and immediately removed.
 //     ~ princessakokosowa, 24th of April 2023
-void __attribute__ ((constructor)) preload(void) {
+void __attribute__ ((constructor)) Context_preload(void) {
     Context_create();
 }
 
-void __attribute__ ((destructor)) tidyUp(void) {
+void __attribute__ ((destructor)) Context_tidyUp(void) {
     Context_destroy();
 }
 
-void *_alloc(isize type_size_times_count) {
+void *Context_alloc(isize type_size_times_count) {
     void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
         .impl                            = context.allocator->impl,
     });
 
-    assert(maybe_ptr != null);
+    Basic_assert(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
-void *_resize(void *ptr, isize type_size_times_count) {
-    assert(ptr != null);
+void *Context_resize(void *ptr, isize type_size_times_count) {
+    Basic_assert(ptr != null);
 
     void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
         .ptr_to_be_resized_or_freed      = ptr,
@@ -105,58 +109,58 @@ void *_resize(void *ptr, isize type_size_times_count) {
         .impl                            = context.allocator->impl,
     });
 
-    assert(maybe_ptr != null);
+    Basic_assert(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
-void _free(void *ptr) {
-    assert(ptr != null);
+void Context_free(void *ptr) {
+    Basic_assert(ptr != null);
 
     void *result_but_ptr = context.allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
         .ptr_to_be_resized_or_freed = ptr,
         .impl                       = context.allocator->impl,
     });
 
-    assert(result_but_ptr != null);
+    Basic_assert(result_but_ptr != null);
 
     (void) result_but_ptr;
 }
 
-void *_allocUsingAllocator(isize type_size_times_count, Allocator *allocator) {
+void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *allocator) {
     void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
-        .impl                            = context.allocator->impl,
+        .impl                            = allocator->impl,
     });
 
-    assert(maybe_ptr != null);
+    Basic_assert(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
-void *_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator) {
-    assert(ptr != null);
+void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator) {
+    Basic_assert(ptr != null);
 
     void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_RESIZE, &(AllocatorDescription){
         .ptr_to_be_resized_or_freed      = ptr,
         .size_to_be_allocated_or_resized = type_size_times_count,
-        .impl                            = context.allocator->impl,
+        .impl                            = allocator->impl,
     });
 
-    assert(maybe_ptr != null);
+    Basic_assert(maybe_ptr != null);
 
     return maybe_ptr;
 }
 
-void _freeUsingAllocator(void *ptr, Allocator *allocator) {
-    assert(ptr != null);
+void Context_freeUsingAllocator(void *ptr, Allocator *allocator) {
+    Basic_assert(ptr != null);
 
     void *result_but_ptr = allocator->procedure(ALLOCATOR_MODE_FREE, &(AllocatorDescription) {
         .ptr_to_be_resized_or_freed = ptr,
-        .impl                       = context.allocator->impl,
+        .impl                       = allocator->impl,
     });
 
-    assert(result_but_ptr != null);
+    Basic_assert(result_but_ptr != null);
 
     (void) result_but_ptr;
 }
