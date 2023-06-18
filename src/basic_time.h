@@ -1,8 +1,7 @@
 #ifndef INCLUDE_TIME_H
 #define INCLUDE_TIME_H
 
-#include "basic.h"
-
+core_function
 f64 Time_stamp(void) {
     // `counter_start` and `counter_end` are both, eh, counters, which are dependent on
     // the clock frequency.

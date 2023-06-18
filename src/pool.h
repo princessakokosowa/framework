@@ -46,10 +46,12 @@ typedef struct {
     Allocator *backing_allocator;
 } Pool;
 
+function
 void Pool_setAllocators(Pool *pool, Allocator *allocator) {
     pool->backing_allocator = allocator;
 }
 
+function
 void Pool_makeAndSwapBlocks(Pool *pool) {
     Block *new_block;
     if (pool->unused_blocks != null) {
@@ -70,6 +72,7 @@ void Pool_makeAndSwapBlocks(Pool *pool) {
     pool->current_ptr   = pool->current_block->ptr;
 }
 
+function
 void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     ensure(description->impl != null);
 
@@ -127,6 +130,7 @@ void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descript
     Basic_unreachable();
 }
 
+function
 Pool Pool_create(PoolDescription *description) {
     return (Pool) {
         .bucket_size                      = POOL_DEFAULT_BUCKET_SIZE,
@@ -137,12 +141,14 @@ Pool Pool_create(PoolDescription *description) {
     };
 }
 
+function
 void Pool_destroy(Pool *pool) {
     *pool = (Pool) {
         0,
     };
 }
 
+function
 void *Pool_get(Pool *pool, isize type_size_times_count) {
     return Pool_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
@@ -150,7 +156,7 @@ void *Pool_get(Pool *pool, isize type_size_times_count) {
     });
 }
 
-
+function
 Allocator Pool_getAllocator(Pool *pool) {
     return (Allocator) {
         .procedure = Pool_allocatorProcedure,

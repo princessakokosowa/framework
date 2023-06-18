@@ -26,4 +26,6 @@
 
 #pragma warning(pop)
 
+core_global HINSTANCE h_instance;
+
 #endif // INCLUDE_WIN32_H

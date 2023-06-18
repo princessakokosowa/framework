@@ -52,11 +52,9 @@ typedef struct {
 #define Array_first(array) (array + 0)
 #define Array_last(array)  (array + Array_count(array) - 1)
 
-#define forEachByIndex(array)                                       \
-    for (isize index = 0; index < Array_count((array)); index += 1)
+#define forEachByIndex(array) for (isize index = 0; index < Array_count((array)); index += 1)
 
-#define forEachByValue(array)                                                                             \
-    for (__typeof((array)) iterator = (array); iterator != (array) + Array_count((array)); iterator += 1)
+#define forEachByValue(array) for (__typeof((array)) iterator = (array); iterator != (array) + Array_count((array)); iterator += 1)
 
 // @NOTE
 // Alright, so this works as follows:
@@ -78,7 +76,8 @@ typedef struct {
     for (isize flip = 0, index = 0; index < Array_count((array)); flip = !flip, index += 1) \
         for (__typeof((array)) value = (array) + index; flip != 1; flip = !flip)
 
-static inline void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set) {
+core_function
+void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set) {
     if (Array_count(array) + count_to_be_added > capacity_to_be_set) capacity_to_be_set = Array_count(array) + count_to_be_added;
     if (Array_capacity(array) >= capacity_to_be_set)                 return array;
 
@@ -104,7 +103,8 @@ static inline void *Array_grow(void *array, isize size_of_backing_type, isize co
     return Preamble_castToArray(preamble);
 }
 
-static inline void *Array_initialiseWithAllocators(void *array, Allocator *allocator) {
+core_function
+void *Array_initialiseWithAllocators(void *array, Allocator *allocator) {
     ensure(array == null);
     ensure(allocator != null);
 
@@ -120,11 +120,9 @@ static inline void *Array_initialiseWithAllocators(void *array, Allocator *alloc
     return Preamble_castToArray(preamble);
 }
 
-#define Array_setAllocators(array, allocator)                      \
-    (array) = Array_initialiseWithAllocators((array), (allocator))
+#define Array_setAllocators(array, allocator)    (array) = Array_initialiseWithAllocators((array), (allocator))
 
-#define Array_reserve(array, capacity_to_be_set)                             \
-    (array) = Array_grow((array), sizeof(*(array)), 0, (capacity_to_be_set))
+#define Array_reserve(array, capacity_to_be_set) (array) = Array_grow((array), sizeof(*(array)), 0, (capacity_to_be_set))
 
 #define Array_resize(array, count_to_be_set)                                                                                            \
     multilineMacroBegin                                                                                                                 \
@@ -217,8 +215,7 @@ static inline void *Array_initialiseWithAllocators(void *array, Allocator *alloc
         }                                                                                            \
     multilineMacroEnd
 
-#define Array_push(array, value) \
-    Array_add((array), (value))
+#define Array_push(array, value) Array_add((array), (value))
 
 #define Array_pop(array)                              \
     (                                                 \
@@ -226,7 +223,8 @@ static inline void *Array_initialiseWithAllocators(void *array, Allocator *alloc
         (array)[Array_castToPreamble((array))->count] \
     )
 
-static inline void Array_free(void *array) {
+core_function
+void Array_free(void *array) {
     if (array != null) freeUsingAllocator(Array_castToPreamble(array), Array_allocator(array));
 }
 

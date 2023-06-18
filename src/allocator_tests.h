@@ -5,6 +5,7 @@
 
 #include "arena.h"
 
+function
 isize CString_count(u8 *c_string) {
     isize count = 0;
     while (*c_string) {
@@ -15,6 +16,7 @@ isize CString_count(u8 *c_string) {
     return count;
 }
 
+function
 void CString_copy(u8 *destination, u8 *source) {
     isize source_count = CString_count(source);
 
@@ -25,6 +27,7 @@ void CString_copy(u8 *destination, u8 *source) {
 
 #define BUFFER_COUNT 64
 
+function
 void AllocatorTests_test(void) {
     // Create some sort of memory pool (here: `Arena`).
     {
@@ -131,8 +134,11 @@ void AllocatorTests_test(void) {
 
     // Here goes the default allocator.
     {
-        isize buf_size  = sizeof(u8) * BUFFER_COUNT;
-        u8    *buf      = alloc(buf_size);
+        isize buf_size = sizeof(u8) * BUFFER_COUNT;
+        u8    *buf     = alloc(buf_size);
+
+        isize greater_buf_size = 2 * buf_size;
+        buf = resize(buf, greater_buf_size);
 
         u8 strings[][BUFFER_COUNT] = {
             "Ghost of Mother lingering death",
@@ -150,6 +156,5 @@ void AllocatorTests_test(void) {
         free(buf);
     }
 }
-
 
 #endif // INCLUDE_ALLOCATOR_TESTS_H

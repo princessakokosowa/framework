@@ -17,8 +17,9 @@ typedef struct {
     Allocator *allocator;
 } Context;
 
-Context context;
+per_thread Context context;
 
+core_function
 void *Default_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     if      (mode == ALLOCATOR_MODE_ALLOCATE) return cast(void *,           HeapAlloc(  GetProcessHeap(), 0,                                                        description->size_to_be_allocated_or_resized));
     else if (mode == ALLOCATOR_MODE_RESIZE)   return cast(void *,           HeapReAlloc(GetProcessHeap(), 0, cast(LPVOID, description->ptr_to_be_resized_or_freed), description->size_to_be_allocated_or_resized));
@@ -31,6 +32,7 @@ Allocator default_allocator = (Allocator) {
     .procedure = &Default_allocatorProcedure,
 };
 
+core_function
 void Context_create(void) {
     context = (Context) {
         .allocator = &default_allocator,
@@ -40,6 +42,18 @@ void Context_create(void) {
     TemporaryStorage_setAllocators(&default_allocator);
 }
 
+core_function
+int Context_destroy(void) {
+    TemporaryStorage_destroy();
+
+    context = (Context) {
+        0,
+    };
+
+    return 0;
+}
+
+core_function
 void Context_rememberAllocators(void) {
     ensure(MAX_REMEMBERED_LIST_COUNT != context.remembered_count);
 
@@ -47,12 +61,14 @@ void Context_rememberAllocators(void) {
     context.remembered_count                          += 1;
 }
 
+core_function
 void Context_setAllocators(Allocator *allocator) {
     Context_rememberAllocators();
 
     context.allocator = allocator;
 }
 
+core_function
 void Context_remindAllocators(void) {
     ensure(context.remembered_count != 0);
 
@@ -61,32 +77,7 @@ void Context_remindAllocators(void) {
     context.remembered_list[context.remembered_count] = null;
 }
 
-void Context_destroy(void) {
-    TemporaryStorage_destroy();
-
-    context = (Context) {
-        0,
-    };
-}
-
-// @NOTE
-// This could actually be called at the very beginning and end of the `main' procedure,
-// but this way you avoid accidentally shooting yourself in the foot, e.g. by calling the
-// procedures of this framework before initialising it. This could actually be written
-// somewhere in this file, but eh, no. We're using _clang_ and the so-called GNU ABI here,
-// and so I feel somehow okay about using such compiler extensions to simplify how you
-// interact with your `main' procedure.
-//
-// If this turns out to be annoying, it will be imminently and immediately removed.
-//     ~ princessakokosowa, 24th of April 2023
-void __attribute__ ((constructor)) Context_preload(void) {
-    Context_create();
-}
-
-void __attribute__ ((destructor)) Context_tidyUp(void) {
-    Context_destroy();
-}
-
+core_function
 void *Context_alloc(isize type_size_times_count) {
     void *maybe_ptr = context.allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
@@ -98,6 +89,7 @@ void *Context_alloc(isize type_size_times_count) {
     return maybe_ptr;
 }
 
+core_function
 void *Context_resize(void *ptr, isize type_size_times_count) {
     ensure(ptr != null);
 
@@ -112,6 +104,7 @@ void *Context_resize(void *ptr, isize type_size_times_count) {
     return maybe_ptr;
 }
 
+core_function
 void Context_free(void *ptr) {
     ensure(ptr != null);
 
@@ -125,6 +118,7 @@ void Context_free(void *ptr) {
     (void) result_but_ptr;
 }
 
+core_function
 void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *allocator) {
     void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,
@@ -136,6 +130,7 @@ void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *alloca
     return maybe_ptr;
 }
 
+core_function
 void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator) {
     ensure(ptr != null);
 
@@ -150,6 +145,7 @@ void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Alloc
     return maybe_ptr;
 }
 
+core_function
 void Context_freeUsingAllocator(void *ptr, Allocator *allocator) {
     ensure(ptr != null);
 

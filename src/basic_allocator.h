@@ -5,20 +5,23 @@ enum {
     ALLOCATOR_ALIGNMENT = 8,
 };
 
-static inline isize align(isize size, isize alignment) {
+core_function isize align(isize size, isize alignment) {
     isize mask = ~(alignment - 1);
     isize _    = size + (alignment - 1);
 
     return _ & mask;
 }
 
-static inline isize alignPtr(u8 *ptr, isize alignment) {
+/*
+core_function
+isize alignPtr(u8 *ptr, isize alignment) {
     isize mask   = alignment - 1;
     isize offset = cast(isize, ptr) & mask;
     isize _      = alignment - offset;
 
     return _ & mask;
 }
+*/
 
 // @TODO
 // Allocators, in addition, of course, to such basic modes, viz:
@@ -83,13 +86,13 @@ typedef struct {
 // @TODO
 // Consider moving this to context.h.
 //     ~ princessakokosowa, 17 June 2023
-void *Context_alloc(isize type_size_times_count);
-void *Context_resize(void *ptr, isize type_size_times_count);
-void  Context_free(void *ptr);
+core_function void *Context_alloc(isize type_size_times_count);
+core_function void *Context_resize(void *ptr, isize type_size_times_count);
+core_function void  Context_free(void *ptr);
 
-void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *allocator);
-void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
-void  Context_freeUsingAllocator(void *ptr, Allocator *allocator);
+core_function void *Context_allocUsingAllocator(isize type_size_times_count, Allocator *allocator);
+core_function void *Context_resizeUsingAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
+core_function void  Context_freeUsingAllocator(void *ptr, Allocator *allocator);
 
 #define alloc                Context_alloc
 #define resize               Context_resize

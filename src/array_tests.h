@@ -5,6 +5,7 @@
 
 #include "arena.h"
 
+function
 void ArrayTests_test(void) {
     {
         f32 *array = null;

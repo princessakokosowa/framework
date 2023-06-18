@@ -1,6 +1,7 @@
 #ifndef INCLUDE_MEMORY_H
 #define INCLUDE_MEMORY_H
 
+core_function
 void *Memory_rawCopy(void *destination, void *source, usize count_to_be_copied) {
     // Cache coherency.
     u8 *d = cast(u8 *, destination);
@@ -29,6 +30,7 @@ void *Memory_rawCopy(void *destination, void *source, usize count_to_be_copied) 
     return destination;
 }
 
+core_function
 void *Memory_copy(void *destination, void *source, usize count_to_be_copied) {
     // Cache coherency.
     u8 *d = cast(u8 *, destination);

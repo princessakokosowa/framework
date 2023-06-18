@@ -2,7 +2,6 @@
 #define INCLUDE_ARENA_H
 
 #include "basic.h"
-#include "allocator.h"
 
 enum {
     ARENA_DEFAULT_SIZE      = 65536,
@@ -31,10 +30,12 @@ typedef struct {
     Allocator *backing_allocator;
 } Arena;
 
-static void Arena_setAllocators(Arena *arena, Allocator *allocator) {
+function
+void Arena_setAllocators(Arena *arena, Allocator *allocator) {
     arena->backing_allocator = allocator;
 }
 
+function
 void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
     ensure(description->impl != null);
 
@@ -84,6 +85,7 @@ void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescription *descrip
     unreachable();
 }
 
+function
 Arena Arena_create(ArenaDescription *description) {
     return (Arena) {
         .alignment         = description->alignment ? description->alignment : ARENA_DEFAULT_ALIGNMENT,
@@ -93,6 +95,7 @@ Arena Arena_create(ArenaDescription *description) {
     };
 }
 
+function
 void Arena_destroy(Arena *arena) {
     if (arena->ptr != null) freeUsingAllocator(arena->ptr, arena->backing_allocator);
 
@@ -101,6 +104,7 @@ void Arena_destroy(Arena *arena) {
     };
 }
 
+function
 void *Arena_get(Arena *arena, isize type_size_times_count) {
     return Arena_allocatorProcedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription) {
         .size_to_be_allocated_or_resized = type_size_times_count,
@@ -108,7 +112,7 @@ void *Arena_get(Arena *arena, isize type_size_times_count) {
     });
 }
 
-
+function
 Allocator Arena_getAllocator(Arena *arena) {
     return (Allocator) {
         .procedure = Arena_allocatorProcedure,
