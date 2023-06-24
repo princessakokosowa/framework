@@ -43,7 +43,7 @@ core_function void *Arena_allocatorProcedure(AllocatorMode mode, AllocatorDescri
 
             if (arena->backing_allocator == null) {
                 bool are_we_already_set_in_context = context.allocator->impl == arena;
-                if (are_we_already_set_in_context == true) Arena_setAllocators(arena, &default_allocator);
+                if (are_we_already_set_in_context == true) Arena_setAllocators(arena, &context.heap_allocator);
                 else                                       Arena_setAllocators(arena, context.allocator);
             }
 

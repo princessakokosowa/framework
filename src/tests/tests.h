@@ -12,20 +12,20 @@ function void ArrayTests_test(void);
 function f64 Math_square(f64 a);
 function f64 Haversine_radiansFromDegrees(f64 degrees);
 
-#define USIZE_MAX ~0ull
+#define isize_MAX ~0ull
 
 function f64 Haversine_calculateDistance(f64 longitude_0, f64 latitude_0, f64 longitude_1, f64 latitude_1, f64 earth_radius);
 
 typedef struct {
-    usize a;
-    usize b;
-    usize c;
-    usize d;
+    isize a;
+    isize b;
+    isize c;
+    isize d;
 } Series;
 
-function usize Series_rotateLeft(usize value, usize shift);
-function usize Series_getRandom(Series *series);
-function Series Series_createAndApplySeed(usize value);
+function isize Series_rotateLeft(isize value, isize shift);
+function isize Series_getRandom(Series *series);
+function Series Series_createAndApplySeed(isize value);
 function f64 Series_generateRandomInRange(Series *series, f64 value_min, f64 value_max);
 function f64 Series_generateRandomDegree(Series *series, f64 center, f64 radius, f64 value_max_allowed);
 

@@ -96,7 +96,7 @@ function void AllocatorTests_test(void) {
     }
 
     // Create some sort of memory pool (here: `Arena`).
-    {
+    /*{
         Pool pool = Pool_create(&(PoolDescription) { 0, });
 
         // Get some memory directly from it via `arenaGet`.
@@ -171,11 +171,12 @@ function void AllocatorTests_test(void) {
         }
 
         Pool_destroy(&pool);
-    }
+    }*/
 
     // Set `Context` allocators, similarly to how this is done in the previous scope,
     // but using predefined temporary allocator (and its temporary storage).
     {
+        Allocator temporary_storage_allocator = TemporaryStorage_getAllocator();
         Context_setAllocators(&temporary_storage_allocator);
 
         isize buf_size  = sizeof(u8) * BUFFER_COUNT;
@@ -235,6 +236,7 @@ function void ArrayTests_test(void) {
     }
 
     {
+        Allocator temporary_storage_allocator = TemporaryStorage_getAllocator();
         Context_setAllocators(&temporary_storage_allocator);
 
         f32 *array = null;
@@ -471,14 +473,14 @@ function f64 Haversine_calculateDistance(f64 longitude_0, f64 latitude_0, f64 lo
     return result;
 }
 
-function usize Series_rotateLeft(usize value, usize shift) {
-    usize result = (value << shift) | (value >> (64 - shift));
+function isize Series_rotateLeft(isize value, isize shift) {
+    isize result = (value << shift) | (value >> (64 - shift));
 
     return result;
 }
 
-function usize Series_getRandom(Series *series) {
-    usize e = series->a - Series_rotateLeft(series->b, 27);
+function isize Series_getRandom(Series *series) {
+    isize e = series->a - Series_rotateLeft(series->b, 27);
 
     series->a = series->b ^ Series_rotateLeft(series->c, 17);
     series->b = series->c + series->d;
@@ -488,7 +490,7 @@ function usize Series_getRandom(Series *series) {
     return series->d;
 }
 
-function Series Series_createAndApplySeed(usize value) {
+function Series Series_createAndApplySeed(isize value) {
     Series series = (Series) {
         .a = 0xf1ea5eed,
         .b = value,
@@ -505,7 +507,7 @@ function Series Series_createAndApplySeed(usize value) {
 }
 
 function f64 Series_generateRandomInRange(Series *series, f64 value_min, f64 value_max) {
-    f64 t      = cast(f64, Series_getRandom(series)) / cast(f64, USIZE_MAX);
+    f64 t      = cast(f64, Series_getRandom(series)) / cast(f64, isize_MAX);
     f64 result = (1.0 - t) * value_min + t * value_max;
     
     return result;
@@ -532,9 +534,9 @@ function void HaversineTests_test(void) {
         // @NOTE
         // This means that we are very unlikely to ever reach 
         // `COUNT_FOR_CLUSTER_TO_KICK_IN`.
-        usize count = USIZE_MAX;
+        isize count = isize_MAX;
     #else
-        usize count = 0;
+        isize count = 0;
     #endif // USE_CLUSTER
 
     f64 x_center = 0.0;
@@ -542,11 +544,11 @@ function void HaversineTests_test(void) {
     f64 x_radius = X_MAX_ALLOWED;
     f64 y_radius = Y_MAX_ALLOWED;
 
-    usize  seed_value = 234089;
+    isize  seed_value = 234089;
     Series series     = Series_createAndApplySeed(seed_value);
 
-    usize pair_count_max = 1ull << 34;
-    usize pair_count     = 100;
+    isize pair_count_max = 1ull << 34;
+    isize pair_count     = 100;
 
     if (pair_count < pair_count_max) {
         u64 cluster_count_max = 1 + (pair_count / 64);

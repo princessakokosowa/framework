@@ -28,18 +28,14 @@ void prv_assert(bool condition, const char *file, int line, const char *func);
 
 #define unreachable() prv_panic("Unreachable at %s:%d in %s.\n", __FILE__, __LINE__, __func__)
 
-#include "os/os.h"
-
 #include "memory.h"
 #include "allocator.h"
 #include "context.h"
+#include "arena.h"
+#include "pool.h"
 #include "temporary_storage.h"
 #include "array.h"
 #include "math.h" // Windows-provided, @TODO make self.
 #include "thread.h"
-#include "arena.h"
-#include "pool.h"
-
-#include "os/entry_point.h"
 
 #endif // BASIC_H

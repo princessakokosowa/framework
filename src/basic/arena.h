@@ -1,5 +1,5 @@
-#ifndef ARENA_H
-#define ARENA_H
+#ifndef BASIC_ARENA_H
+#define BASIC_ARENA_H
 
 enum {
     ARENA_DEFAULT_SIZE      = 65536,
@@ -35,4 +35,4 @@ core_function void Arena_destroy(Arena *arena);
 core_function void *Arena_get(Arena *arena, isize type_size_times_count);
 core_function Allocator Arena_getAllocator(Arena *arena);
 
-#endif // ARENA_H
+#endif // BASIC_ARENA_H

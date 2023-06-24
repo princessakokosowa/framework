@@ -1,4 +1,4 @@
-core_function void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set) {
+core_function void *Array_initialiseOrGrow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set) {
     if (Array_count(array) + count_to_be_added > capacity_to_be_set) capacity_to_be_set = Array_count(array) + count_to_be_added;
     if (Array_capacity(array) >= capacity_to_be_set)                 return array;
 
@@ -24,7 +24,7 @@ core_function void *Array_grow(void *array, isize size_of_backing_type, isize co
     return Preamble_castToArray(preamble);
 }
 
-core_function void *Array_initialiseWithAllocators(void *array, Allocator *allocator) {
+core_function void *Array_initialiseWithAllocator(void *array, Allocator *allocator) {
     ensure(array == null);
     ensure(allocator != null);
 

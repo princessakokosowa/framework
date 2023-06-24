@@ -1,5 +1,13 @@
-#ifndef ALLOCATOR_H
-#define ALLOCATOR_H
+#ifndef BASIC_ALLOCATOR_H
+#define BASIC_ALLOCATOR_H
+
+#if !defined(ALLOCATOR_COMMIT_GRANULARITY)
+    #define ALLOCATOR_COMMIT_GRANULARITY kilobytes(4)
+#endif
+
+#if !defined(ALLOCATOR_DECOMMIT_THRESHOLD)
+    #define ALLOCATOR_DECOMMIT_THRESHOLD megabytes(64)
+#endif
 
 enum {
     ALLOCATOR_ALIGNMENT = 8,
@@ -61,4 +69,4 @@ core_function void Allocator_freeWithAllocator(void *ptr, Allocator *allocator);
 #define resizeWithAllocator Allocator_resizeWithAllocator
 #define freeWithAllocator   Allocator_freeWithAllocator
 
-#endif // ALLOCATOR_H
+#endif // BASIC_ALLOCATOR_H

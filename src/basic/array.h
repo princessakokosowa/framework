@@ -10,8 +10,8 @@
 // I wonder what to do with static arrays and how to unify Array_count so that it handles
 // both static and dynamic (resizable?) arrays.
 
-#ifndef ARRAY_H
-#define ARRAY_H
+#ifndef BASIC_ARRAY_H
+#define BASIC_ARRAY_H
 
 enum {
     ARRAY_DEFAULT_GROWTH_FACTOR = 2,
@@ -76,41 +76,41 @@ typedef struct {
     for (isize flip = 0, index = 0; index < Array_count((array)); flip = !flip, index += 1) \
         for (__typeof((array)) value = (array) + index; flip != 1; flip = !flip)
 
-core_function void *Array_grow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set);
-core_function void *Array_initialiseWithAllocators(void *array, Allocator *allocator);
+core_function void *Array_initialiseOrGrow(void *array, isize size_of_backing_type, isize count_to_be_added, isize capacity_to_be_set);
+core_function void *Array_initialiseWithAllocator(void *array, Allocator *allocator);
 
-#define Array_setAllocators(array, allocator)    (array) = Array_initialiseWithAllocators((array), (allocator))
+#define Array_setAllocators(array, allocator)    (array) = Array_initialiseWithAllocator((array), (allocator))
 
-#define Array_reserve(array, capacity_to_be_set) (array) = Array_grow((array), sizeof(*(array)), 0, (capacity_to_be_set))
+#define Array_reserve(array, capacity_to_be_set) (array) = Array_initialiseOrGrow((array), sizeof(*(array)), 0, (capacity_to_be_set))
 
 #define Array_resize(array, count_to_be_set)                                                                                            \
     multilineMacroBegin                                                                                                                 \
-        (array) = Array_grow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                                   \
+        (array) = Array_initialiseOrGrow((array), sizeof(*(array)), (count_to_be_set) - Array_count((array)), 0);                                   \
         if (Array_count((array)) < (count_to_be_set)) Array_castToPreamble((array))->count += (count_to_be_set) - Array_count((array)); \
     multilineMacroEnd
 
-#define Array_addAt(array, value, index)                                             \
-    multilineMacroBegin                                                              \
-        ensure((index) >= 0);                                                        \
-        ensure((index) <= Array_count((array)));                                     \
-                                                                                     \
-        (array)                       = Array_grow((array), sizeof(*(array)), 1, 0); \
-        Array_castToPreamble((array))->count += 1;                                   \
-                                                                                     \
-        Memory_copy(                                                                 \
-            (array) + (index) + 1,                                                   \
-            (array) + (index),                                                       \
-            (Array_count((array)) - (index)) * sizeof(*(array))                      \
-        );                                                                           \
-                                                                                     \
-        (array)[(index)] = (value);                                                  \
+#define Array_addAt(array, value, index)                                                                \
+    multilineMacroBegin                                                                                 \
+        ensure((index) >= 0);                                                                           \
+        ensure((index) <= Array_count((array)));                                                        \
+                                                                                                        \
+        (array)                              = Array_initialiseOrGrow((array), sizeof(*(array)), 1, 0); \
+        Array_castToPreamble((array))->count += 1;                                                      \
+                                                                                                        \
+        Memory_copy(                                                                                    \
+            (array) + (index) + 1,                                                                      \
+            (array) + (index),                                                                          \
+            (Array_count((array)) - (index)) * sizeof(*(array))                                         \
+        );                                                                                              \
+                                                                                                        \
+        (array)[(index)] = (value);                                                                     \
     multilineMacroEnd
 
-#define Array_add(array, value)                                                             \
-    multilineMacroBegin                                                                     \
-        (array)                              = Array_grow((array), sizeof(*(array)), 1, 0); \
-        (array)[Array_count((array))]        = (value);                                     \
-        Array_castToPreamble((array))->count += 1;                                          \
+#define Array_add(array, value)                                                                         \
+    multilineMacroBegin                                                                                 \
+        (array)                              = Array_initialiseOrGrow((array), sizeof(*(array)), 1, 0); \
+        (array)[Array_count((array))]        = (value);                                                 \
+        Array_castToPreamble((array))->count += 1;                                                      \
     multilineMacroEnd
 
 #define Array_removeAtIndex(array, index)                                     \
@@ -184,4 +184,4 @@ core_function void *Array_initialiseWithAllocators(void *array, Allocator *alloc
 
 core_function void Array_free(void *array);
 
-#endif // ARRAY_H
+#endif // BASIC_ARRAY_H

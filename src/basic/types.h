@@ -1,5 +1,5 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef BASIC_TYPES_H
+#define BASIC_TYPES_H
 
 ////////////////////////////////
 // Macros
@@ -72,11 +72,13 @@
     #define snprintf _snprintf
 #endif
 
-#if OS_WINDOWS && COMPILER_MSVC
+#if COMPILER_MSVC
     #pragma section(".roglob", read)
     #define read_only __declspec(allocate(".roglob"))
-#else
-    #define read_only
+#elif COMPILER_CLANG
+    #define read_only // __attribute__((section(".roglob"), read))
+#elif COMPILER_GCC
+    #define read_only // __attribute__((section(".roglob"), read))
 #endif
 
 #ifdef COMPILER_MSVC
@@ -85,7 +87,13 @@
     #define attribute_returns_noalias __declspec(restrict)
     #define attribute_noreturn        __declspec(noreturn)
     #define attribute_must_use
-#else
+#elif COMPILER_CLANG
+    #define attribute_cold            __attribute__((cold))
+    #define attribute_printf(a, b)    __attribute__((format(printf, a, b)))
+    #define attribute_returns_noalias __attribute__((__malloc__))
+    #define attribute_noreturn        __attribute__((noreturn))
+    #define attribute_must_use        __attribute__((warn_unused_result))
+#elif COMPILER_GCC
     #define attribute_cold            __attribute__((cold))
     #define attribute_printf(a, b)    __attribute__((format(printf, a, b)))
     #define attribute_returns_noalias __attribute__((__malloc__))
@@ -142,7 +150,7 @@
             : (b)   \
     )
 
-#define clampCeiling(x, a) min(x, a)
+#define clampCeil(x, a) min(x, a)
 #define clampFloor(a, x)   max(a, x)
 
 #define clamp(a, x, b)    \
@@ -185,7 +193,7 @@ typedef unsigned short     u16;
 typedef unsigned int       u32;
 typedef unsigned long long u64;
 
-typedef u16                f16;
+typedef i16                f16;
 typedef float              f32;
 typedef double             f64;
 
@@ -206,11 +214,11 @@ typedef i64                isize;
 ////////////////////////////////
 // Limits
 
-read_only global u8 U8_MAX = 0xFF;
-read_only global u8 U8_MIN = 0;
+read_only global i8 i8_MAX = 0xFF;
+read_only global i8 i8_MIN = 0;
 
-read_only global u16 U16_MAX = 0xFFFF;
-read_only global u16 U16_MIN = 0;
+read_only global i16 i16_MAX = 0xFFFF;
+read_only global i16 i16_MIN = 0;
 
 read_only global u32 U32_MAX = 0xFFFFFFFF;
 read_only global u32 U32_MIN = 0;
@@ -258,11 +266,22 @@ read_only global u64 F64_MANTISSA = 0xFFFFFFFFFFFFFull;
 // read_only global f64 F64_EPSILON           = 0.0;
 
 ////////////////////////////////
+// Date
+typedef struct {
+    i16 year;
+    i8  month;           // from 1 to  12
+    i8  week;            // from 0 to  52
+    i8  day_of_week;     // from 0 to   6
+    i8  day;             // from 1 to  31
+    i8  hour;            // from 0 to  23
+    i8  minute;          // from 0 to  59
+    i8  second;          // from 0 to  59
+    i16 milliseconds;    // from 0 to 999
+} Date;
+
+////////////////////////////////
 // Assertions
 
-// @TODO
-// Simply OS_WINDOWS?
-//     ~ princessakokosowa, 18 June 2023
 #if COMPILER_MSVC
     #define debugBreak() __debugbreak()
 #elif COMPILER_CLANG
@@ -282,7 +301,7 @@ read_only global u64 F64_MANTISSA = 0xFFFFFFFFFFFFFull;
 
 #if BUILD_ROOT
     #define staticAssert(c, label) \
-        u8 static_assert_##label[(c)?(1):(-1)]
+        i8 static_assert_##label[(c)?(1):(-1)]
 #else
     #define staticAssert(c, label)
 #endif
@@ -290,4 +309,4 @@ read_only global u64 F64_MANTISSA = 0xFFFFFFFFFFFFFull;
 #define notImplemented assert(!"Not Implemented")
 #define invalidPath    assert(!"Invalid Path")
 
-#endif // TYPES_H
+#endif // BASIC_TYPES_H

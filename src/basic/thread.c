@@ -1,5 +1,8 @@
+////////////////////////////////
+// Globals
+
 #if BUILD_ROOT
-    per_thread Thread thread;
+    per_thread Thread thread = { 0, };
 #endif
 
 core_function void Thread_create(void) {
@@ -14,19 +17,14 @@ core_function void Thread_destroy(void) {
     };
 }
 
-core_function void Thread_mainEntryPoint(void (*entry)(void), usize argument_count, char **arguments) {
-    default_allocator = (Allocator) {
-        .procedure = &Default_allocatorProcedure,
-    };
-
+core_function void Thread_mainEntryPoint(void (*entry)(void), isize argument_count, char **arguments) {
+    Thread_create();
     Context_create();
     TemporaryStorage_create();
 
-    Thread_create();
-
     entry();
 
-    Thread_destroy();
     TemporaryStorage_destroy();
     Context_destroy();
+    Thread_destroy();
 }

@@ -1,5 +1,5 @@
-#ifndef BUILD_H
-#define BUILD_H
+#ifndef BASIC_BUILD_H
+#define BASIC_BUILD_H
 
 ////////////////////////////////
 // MSVC Extraction
@@ -204,4 +204,4 @@
     #endif
 #endif // !defined(BUILD_ROOT)
 
-#endif // BUILD_H
+#endif // BASIC_BUILD_H

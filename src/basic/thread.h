@@ -1,5 +1,5 @@
-#ifndef THREAD_H
-#define THREAD_H
+#ifndef BASIC_THREAD_H
+#define BASIC_THREAD_H
 
 enum {
     THREAD_NAME_COUNT = 32,
@@ -13,8 +13,10 @@ typedef struct {
     bool is_main_thread;
 } Thread;
 
+// core_global Thread thread;
+
 core_function void Thread_create(void);
 core_function void Thread_destroy(void);
-core_function void Thread_mainEntryPoint(void (*entry)(void), usize argument_count, char **arguments);
+core_function void Thread_mainEntryPoint(void (*entry)(void), isize argument_count, char **arguments);
 
-#endif // THREAD_H
+#endif // BASIC_THREAD_H

@@ -1,5 +1,5 @@
-#ifndef POOL_H
-#define POOL_H
+#ifndef BASIC_POOL_H
+#define BASIC_POOL_H
 
 #include "basic.h"
 
@@ -54,4 +54,4 @@ core_function void Pool_destroy(Pool *pool);
 core_function void *Pool_get(Pool *pool, isize type_size_times_count);
 core_function Allocator Pool_getAllocator(Pool *pool);
 
-#endif // POOL_H
+#endif // BASIC_POOL_H

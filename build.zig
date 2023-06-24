@@ -179,6 +179,7 @@ pub fn build(b: *std.Build) !void {
 
             // "-Wno-for-loop-analysis",
             // "-Wno-uninitialized",
+            "-Wno-unused-function",
         });
     }
 

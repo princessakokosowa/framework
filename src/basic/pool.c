@@ -52,13 +52,13 @@ core_function void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescrip
             // `Context`'s allocator, which may be set to this pool.
             if (pool->backing_allocator == null) {
                 bool are_we_already_set_in_context = context.allocator->impl == pool;
-                if (are_we_already_set_in_context == true) Pool_setAllocators(pool, &default_allocator);
+                if (are_we_already_set_in_context == true) Pool_setAllocators(pool, &context.heap_allocator);
                 else                                       Pool_setAllocators(pool, context.allocator);
             }
 
             bool is_that_allocation_too_big = description->size_to_be_allocated_or_resized >= pool->single_allocation_in_bucket_size;
             if (is_that_allocation_too_big == true) {
-                Block *block = cast(Block *, allocWithAllocator(description->size_to_be_allocated_or_resized, &default_allocator));
+                Block *block = cast(Block *, allocWithAllocator(description->size_to_be_allocated_or_resized, &context.heap_allocator));
                 if (block == null) return null;
 
                 block->next                     = pool->out_of_bounds_allocations;
