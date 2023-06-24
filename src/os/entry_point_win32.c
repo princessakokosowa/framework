@@ -1,10 +1,10 @@
-function void entryPoint(void);
+function void app(void);
 
 #if BUILD_CONSOLE_OUTPUT
     int main(int argument_count, char **arguments) {
         os_win32_instance = GetModuleHandle(0);
 
-        Thread_mainEntryPoint(entryPoint, cast(u64, argument_count), arguments);
+        Os_entryPoint(app, cast(u64, argument_count), arguments);
 
         return 0;
     }
@@ -12,7 +12,7 @@ function void entryPoint(void);
     int WinMain(HINSTANCE instance, HINSTANCE prev_instance, LPSTR lp_cmd_line, int n_show_cmd) {
         os_win32_instance = instance;
 
-        Thread_mainEntryPoint(entryPoint, cast(u64, __argc), __argv);
+        Os_entryPoint(app, cast(u64, __argc), __argv);
 
         return 0;
     }

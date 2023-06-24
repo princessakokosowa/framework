@@ -6,7 +6,6 @@
 typedef struct Block Block;
 struct Block {
     Block *next;
-    void  *ptr;
 };
 
 enum {

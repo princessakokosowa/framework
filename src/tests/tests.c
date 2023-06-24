@@ -96,7 +96,7 @@ function void AllocatorTests_test(void) {
     }
 
     // Create some sort of memory pool (here: `Arena`).
-    /*{
+    {
         Pool pool = Pool_create(&(PoolDescription) { 0, });
 
         // Get some memory directly from it via `arenaGet`.
@@ -171,7 +171,7 @@ function void AllocatorTests_test(void) {
         }
 
         Pool_destroy(&pool);
-    }*/
+    }
 
     // Set `Context` allocators, similarly to how this is done in the previous scope,
     // but using predefined temporary allocator (and its temporary storage).

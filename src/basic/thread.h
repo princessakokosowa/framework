@@ -17,6 +17,6 @@ typedef struct {
 
 core_function void Thread_create(void);
 core_function void Thread_destroy(void);
-core_function void Thread_mainEntryPoint(void (*entry)(void), isize argument_count, char **arguments);
+core_function void Os_entryPoint(void (*entry)(void), isize argument_count, char **arguments);
 
 #endif // BASIC_THREAD_H

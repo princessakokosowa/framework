@@ -13,7 +13,7 @@
 
 #include "os/entry_point.c"
 
-core_function void entryPoint(void) {
+core_function void app(void) {
     AllocatorTests_test();
     ArrayTests_test();
     HaversineTests_test();

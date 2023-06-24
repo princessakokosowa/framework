@@ -4,7 +4,7 @@
 enum {
     HEAP_DEFAULT_ALIGNMENT          = 8,
     HEAP_DEFAULT_SIZE               = megabytes(256),
-    HEAP_DEFAULT_COMMIT_GRANULARITY = kilobytes(4),
+    HEAP_DEFAULT_COMMIT_GRANULARITY = kilobytes(64), // kilobytes(4)
     HEAP_DEFAULT_DECOMMIT_THRESHOLD = megabytes(64),
 };
 
@@ -47,7 +47,7 @@ typedef struct {
     Allocator *allocator;
 } Context;
 
-core_global Context   context;
+core_global Context context;
 
 // core_function void Context_create(void);
 // core_function void Context_destroy(void);

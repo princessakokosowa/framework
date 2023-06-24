@@ -17,14 +17,14 @@ core_function void Thread_destroy(void) {
     };
 }
 
-core_function void Thread_mainEntryPoint(void (*entry)(void), isize argument_count, char **arguments) {
-    Thread_create();
+core_function void Os_entryPoint(void (*entry)(void), isize argument_count, char **arguments) {
     Context_create();
     TemporaryStorage_create();
+    Thread_create();
 
     entry();
 
+    Thread_destroy();
     TemporaryStorage_destroy();
     Context_destroy();
-    Thread_destroy();
 }

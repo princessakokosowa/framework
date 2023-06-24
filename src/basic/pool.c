@@ -19,7 +19,7 @@ core_function void Pool_makeAndSwapBlocks(Pool *pool) {
 
     pool->left          = pool->bucket_size - sizeof(Block);
     pool->current_block = new_block;
-    pool->current_ptr   = pool->current_block->ptr;
+    pool->current_ptr   = cast(u8 *, pool->current_block);
 }
 
 core_function void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description) {
@@ -64,7 +64,7 @@ core_function void *Pool_allocatorProcedure(AllocatorMode mode, AllocatorDescrip
                 block->next                     = pool->out_of_bounds_allocations;
                 pool->out_of_bounds_allocations = block;
                 
-                u8 *chunk = block->ptr;
+                u8 *chunk = cast(u8 *, block);
 
                 return chunk;
             }
