@@ -33,52 +33,83 @@ core_function void *Heap_allocatorProcedure(AllocatorMode mode, AllocatorDescrip
         case ALLOCATOR_MODE_THREAD_START: through
         case ALLOCATOR_MODE_THREAD_STOP: through
 
-        case ALLOCATOR_MODE_CREATE_HEAP: through
-        case ALLOCATOR_MODE_DESTROY_HEAP: through
+        case ALLOCATOR_MODE_CREATE_HEAP: {
+            if (heap->ptr != null) return null;
+
+            isize size                     = heap->size;
+            isize size_roundup_granularity = megabytes(64);
+            isize aligned_size             = Allocator_align(size, size_roundup_granularity);
+
+            heap->ptr      = Allocator_reserve(aligned_size);
+            heap->commited = heap->commit_granularity;
+
+            Allocator_commit(heap->ptr, heap->commit_granularity);
+
+            return cast(void *, cast(i64, true));
+        } break;
+        case ALLOCATOR_MODE_DESTROY_HEAP: {
+            if (heap->ptr == null) return null;
+
+            Allocator_release(heap->ptr, heap->size);
+
+            return cast(void *, cast(i64, true));
+        } break;
 
         case ALLOCATOR_MODE_IS_THIS_YOURS: through
         case ALLOCATOR_MODE_CAPS: through
 
         case ALLOCATOR_MODE_FREE: {
-            bool success = true; // Allocator_release(description->ptr_to_be_resized_or_freed, 0);
+            // @NOTE
+            //
+            // We reserve 256 megabytes of memory, which we commit when needed, but in
+            // reality we don't even need to decommit it, assuming, of course, 100%
+            // utilisation of the decommitted memory and the fact that we will only use
+            // 256 megabytes.
+            //
+            // I think it might be difficult to use more than that, but who knows.
+            // Decommitting blocks of memory sucks, it would be better to store
+            // information about blocks of memory and reuse them, but that would require
+            // writing a good general-purpose allocator, which is probably not worth it
+            // at the moment.
+            //
+            // So we'll stay with the commit-but-decommit model with this allocator for
+            // now, and distribute memory from here to other allocators (i.e. this
+            // allocator will usually be a backing allocator).
+            //
+            // This is the sanest way to handle memory without unnecessary fuckery.
+            //
+            // `Allocator_decommit(heap_block->ptr, heap_block->size)`
+            //
+            // This is the considered procedure.
+            //     ~ mmacieje, 22 June 2023
 
-            return cast(void *, cast(i64, success));
+            return cast(void *, cast(i64, true));
         } break;
         case ALLOCATOR_MODE_RESIZE: through
         case ALLOCATOR_MODE_ALLOCATE: {
-            // isize size                     = description->size_to_be_allocated_or_resized;
-            // isize size_roundup_granularity = megabytes(64);
-            //
-            // size += size_roundup_granularity - 1;
-            // size -= size % size_roundup_granularity;
+            void  *ptr           = description->ptr_to_be_resized_or_freed;
+            bool  is_that_resize = ptr != null;
+            isize size           = description->size_to_be_allocated_or_resized;
+            isize aligned_size   = Allocator_align(size, heap->alignment);
 
-            if (heap->ptr == null) {
-                heap->ptr = Allocator_reserve(heap->size);
+            if (heap->ptr == null) return null;
 
-                Allocator_commit(heap->ptr, heap->commit_granularity);
+            ensure(heap->occupied + aligned_size <= heap->size);
 
-                heap->size_per_commit = heap->commit_granularity;
+            u8 *chunk = heap->ptr + heap->occupied;
+
+            heap->occupied += aligned_size;
+
+            if (heap->commited < heap->occupied) {
+                isize size_to_commit         = heap->occupied - heap->commited;
+                isize aligned_size_to_commit = Allocator_align( size_to_commit, HEAP_DEFAULT_COMMIT_GRANULARITY);
+
+                Allocator_commit(heap->ptr + heap->commited, aligned_size_to_commit);
+
+                heap->commited += aligned_size_to_commit;
             }
 
-            ensure(heap->occupied + description->size_to_be_allocated_or_resized <= heap->size);
-
-            isize aligned_allocation_size = Allocator_align(description->size_to_be_allocated_or_resized, heap->alignment);
-            u8    *chunk                  = heap->ptr + heap->occupied;
-
-            // if (is_that_resize == false) heap->last = heap->occupied;
-
-            heap->occupied += aligned_allocation_size;
-
-            if (heap->size_per_commit < heap->occupied) {
-                isize size_to_commit = heap->occupied - heap->size_per_commit;
-
-                size_to_commit += HEAP_DEFAULT_COMMIT_GRANULARITY - 1;
-                size_to_commit -= size_to_commit % HEAP_DEFAULT_COMMIT_GRANULARITY;
-
-                Allocator_commit(heap->ptr + heap->size_per_commit, size_to_commit);
-
-                heap->size_per_commit += size_to_commit;
-            }
+            if (is_that_resize == true) return ptr;
 
             return chunk;
         } break;
@@ -97,8 +128,6 @@ core_function Heap Heap_create(HeapDescription *description) {
 }
 
 core_function void Heap_destroy(Heap *heap) {
-    if (heap->ptr != null) Allocator_release(heap->ptr, heap->size);
-
     *heap = (Heap) {
         0,
     };
@@ -129,9 +158,13 @@ core_function void Context_create(void) {
         .heap_allocator = Heap_getAllocator(&context.heap),
         .allocator      = &context.heap_allocator,
     };
+
+    Allocator_createHeap(&context.heap_allocator);
 }
 
 core_function void Context_destroy(void) {
+    Allocator_destroyHeap(&context.heap_allocator);
+
     Heap_destroy(&context.heap);
 
     context = (Context) {

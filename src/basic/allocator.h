@@ -61,6 +61,9 @@ typedef struct {
     void               *impl;
 } Allocator;
 
+core_function void Allocator_createHeap(Allocator *allocator);
+core_function void Allocator_destroyHeap(Allocator *allocator);
+
 core_function void *Allocator_allocWithAllocator(isize type_size_times_count, Allocator *allocator);
 core_function void *Allocator_resizeWithAllocator(void *ptr, isize type_size_times_count, Allocator *allocator);
 core_function void Allocator_freeWithAllocator(void *ptr, Allocator *allocator);

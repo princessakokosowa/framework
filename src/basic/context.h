@@ -4,7 +4,7 @@
 enum {
     HEAP_DEFAULT_ALIGNMENT          = 8,
     HEAP_DEFAULT_SIZE               = megabytes(256),
-    HEAP_DEFAULT_COMMIT_GRANULARITY = kilobytes(64), // kilobytes(4)
+    HEAP_DEFAULT_COMMIT_GRANULARITY = kilobytes(4),
     HEAP_DEFAULT_DECOMMIT_THRESHOLD = megabytes(64),
 };
 
@@ -18,15 +18,14 @@ typedef struct {
 typedef struct {
     isize alignment;
     isize size;
-    isize size_per_commit;
+    isize commited;
+    isize occupied;
     isize commit_granularity;
     isize decommit_threshold;
-    isize occupied;
 
     u8 *ptr;
 } Heap;
 
-core_function void      Heap_setAllocators(Heap *heap, Allocator *allocator);
 core_function void      *Heap_allocatorProcedure(AllocatorMode mode, AllocatorDescription *description);
 core_function Heap      Heap_create(HeapDescription *description);
 core_function void      Heap_destroy(Heap *heap);

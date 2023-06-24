@@ -32,12 +32,9 @@ core_function bool Os_release(void *ptr, isize size) {
 }
 
 core_function void Os_commit(void *ptr, isize size) {
-    isize page_snapped_size = size;
+    isize aligned_size = Allocator_align(size, Os_pageSize());
 
-    page_snapped_size += Os_pageSize() - 1;
-    page_snapped_size -= page_snapped_size % Os_pageSize();
-
-    VirtualAlloc(ptr, page_snapped_size, MEM_COMMIT, PAGE_READWRITE);
+    VirtualAlloc(ptr, aligned_size, MEM_COMMIT, PAGE_READWRITE);
 }
 
 core_function void Os_decommit(void *ptr, isize size) {

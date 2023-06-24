@@ -288,8 +288,8 @@ function void ArrayTests_test(void) {
             forEachByValue(array) {
                 // Here, we are comparing ADDRESSES of the currently iterated item and
                 // the last item in the array.
-                if (iterator != Array_last(array)) printf("%5.1f ",  *iterator);
-                else                               printf("%5.1f\n", *iterator);
+                if (value != Array_last(array)) printf("%5.1f ",  *value);
+                else                            printf("%5.1f\n", *value);
             }
 
             // That is probably not the most interesting consequence of iterating things
@@ -298,18 +298,18 @@ function void ArrayTests_test(void) {
                 forEachByValue(array) {
                 // Here, we are comparing VALUES of the currently iterated item and
                 // the last item in the array.
-                if (*iterator != *Array_last(array)) printf("%5.1f ",  *iterator);
-                else                                 printf("%5.1f\n", *iterator);
+                if (*value != *Array_last(array)) printf("%5.1f ",  *value);
+                else                              printf("%5.1f\n", *value);
                 }
                 */
 
             // Obviously, something similar can be achieved the following way.
             /*
                 forEachByIndex(array) {
-                __typeof(array) iterator = Array_first(array) + index;
+                __typeof(array) value = Array_first(array) + index;
 
-                if (iterator != Array_last(array)) printf("%5.1f ",  *iterator);
-                else                               printf("%5.1f\n", *iterator);
+                if (value != Array_last(array)) printf("%5.1f ",  *value);
+                else                            printf("%5.1f\n", *value);
                 }
                 */
         }
@@ -399,25 +399,19 @@ function void ArrayTests_test(void) {
     }
 
     {
-        Arena     arena           = Arena_create(&(ArenaDescription) { 0, });
-        Allocator arena_allocator = Arena_getAllocator(&arena);
-
-        Context_setAllocators(&arena_allocator);
-
         f32 *array = null;
         Array_reserve(array, 384);
 
-        forInRange(0, 5) {
+        forRange(0, 385) {
             Array_add(array, cast(f32, index ^ index * 2 << 2));
         }
 
         forEach(array) {
-            printf("%i %1.1f\n", index, *value);
+            if (index != Array_count(array) - 1) printf("%5.1f ",  *value);
+            else                                 printf("%5.1f\n", *value);
         }
 
         Array_free(array);
-        Context_remindAllocators();
-        Arena_destroy(&arena);
     }
 
     {
@@ -429,7 +423,7 @@ function void ArrayTests_test(void) {
         Array_setAllocators(array, &arena_allocator);
         Array_reserve(array, 384);
 
-        forInRange(0, 5) {
+        forRange(0, 5) {
             Array_add(array, cast(f32, index ^ index * 2 << 2));
         }
 
@@ -557,7 +551,7 @@ function void HaversineTests_test(void) {
 
         f64 sum             = 0.0;
         f64 sum_coefficient = 1.0 / cast(f64, pair_count);
-        forInRange(0, pair_count) {
+        forRange(0, pair_count) {
             if (count == COUNT_FOR_CLUSTER_TO_KICK_IN) {
                 count = cluster_count_max;
 
@@ -594,9 +588,9 @@ function void HaversineTests_test(void) {
         printf("Cluster count max: %llu\n", cluster_count_max);
     }
 
-    forInRange(0, 7) {
+    forRange(0, 7) {
         isize i = index;
-        forInRange(0, 6) {
+        forRange(0, 6) {
             isize j = index;
             if (i + j != 7 - 1 + 6 - 1) printf("%i ", i * j);
             else                        printf("%i\n", i * j);

@@ -13,6 +13,22 @@ core_function isize Allocator_alignPtr(u8 *ptr, isize alignment) {
     return _ & mask;
 }
 
+core_function void Allocator_createHeap(Allocator *allocator) {
+    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_CREATE_HEAP, &(AllocatorDescription){
+        .impl = allocator->impl,
+    });
+
+    ensure(maybe_ptr != null);
+}
+
+core_function void Allocator_destroyHeap(Allocator *allocator) {
+    void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_DESTROY_HEAP, &(AllocatorDescription){
+        .impl = allocator->impl,
+    });
+
+    ensure(maybe_ptr != null);
+}
+
 core_function void *Allocator_allocWithAllocator(isize type_size_times_count, Allocator *allocator) {
     void *maybe_ptr = allocator->procedure(ALLOCATOR_MODE_ALLOCATE, &(AllocatorDescription){
         .size_to_be_allocated_or_resized = type_size_times_count,

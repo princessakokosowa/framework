@@ -167,10 +167,10 @@
 // @TODO
 // Add types to these macros, maybe?
 //     ~ princessakokosowa, 18 June 2023
-#define forInRange(from, to)                             \
+#define forRange(from, to)                               \
     for (isize index = (from); index < (to); index += 1)
 
-#define forInRangeStep(from, to, step)                        \
+#define forRangeStep(from, to, step)                          \
     for (isize index = (from); index < (to); index += (step))
 
 // utility

@@ -54,7 +54,7 @@ typedef struct {
 
 #define forEachByIndex(array) for (isize index = 0; index < Array_count((array)); index += 1)
 
-#define forEachByValue(array) for (__typeof((array)) iterator = (array); iterator != (array) + Array_count((array)); iterator += 1)
+#define forEachByValue(array) for (__typeof((array)) value = (array); value != (array) + Array_count((array)); value += 1)
 
 // @NOTE
 // Alright, so this works as follows:

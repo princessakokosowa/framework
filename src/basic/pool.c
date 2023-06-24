@@ -102,6 +102,8 @@ core_function Pool Pool_create(PoolDescription *description) {
 }
 
 core_function void Pool_destroy(Pool *pool) {
+    if (pool->current_block != null) freeWithAllocator(pool->current_block, pool->backing_allocator);
+
     *pool = (Pool) {
         0,
     };
