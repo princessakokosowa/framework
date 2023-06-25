@@ -48,8 +48,8 @@ typedef struct {
 
 core_global Context context;
 
-// core_function void Context_create(void);
-// core_function void Context_destroy(void);
+core_function void Context_create(void);
+core_function void Context_destroy(void);
 core_function void Context_rememberAllocators(void);
 core_function void Context_setAllocators(Allocator *allocator);
 core_function void Context_remindAllocators(void);

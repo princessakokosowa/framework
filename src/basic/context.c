@@ -2,7 +2,7 @@
 // Globals
 
 #if BUILD_ROOT
-    Context   context           = { 0, };
+    Context context = { 0, };
 #endif
 
 #if !defined(Allocator_reserve)
@@ -61,27 +61,28 @@ core_function void *Heap_allocatorProcedure(AllocatorMode mode, AllocatorDescrip
         case ALLOCATOR_MODE_FREE: {
             // @NOTE
             //
-            // We reserve 256 megabytes of memory, which we commit when needed, but in
-            // reality we don't even need to decommit it, assuming, of course, 100%
-            // utilisation of the decommitted memory and the fact that we will only use
-            // 256 megabytes.
+            // Mental shortcut: reserving, commiting and releasing that memory is easy,
+            // decommiting, not in the least.
             //
-            // I think it might be difficult to use more than that, but who knows.
-            // Decommitting blocks of memory sucks, it would be better to store
-            // information about blocks of memory and reuse them, but that would require
-            // writing a good general-purpose allocator, which is probably not worth it
-            // at the moment.
+            // Decommiting means: fragmentation of memory blocks (or maybe not, but then
+            // you would have to come up with a mechanism that flags the heaps used and
+            // unused and e.g. differentate between large, medium and small memory
+            // blocks.
             //
-            // So we'll stay with the commit-but-decommit model with this allocator for
-            // now, and distribute memory from here to other allocators (i.e. this
-            // allocator will usually be a backing allocator).
+            // So we will stay with the current stategy i.e. only commit, but never
+            // decommit for now, and distribute memory from here to other allocators that
+            // may be able to manage this memory better.
             //
             // This is the sanest way to handle memory without unnecessary fuckery.
             //
-            // `Allocator_decommit(heap_block->ptr, heap_block->size)`
+            // I am thinking of converging `Arena` with this allocator and using `Arena`
+            // as a global allocator instead. The current system offers more flexibility,
+            // but do I really need that flexibility?
             //
-            // This is the considered procedure.
-            //     ~ mmacieje, 22 June 2023
+            // Maybe that is ssaanneerr.
+            //
+            // `Allocator_decommit(heap_block->ptr, heap_block->size)`
+            //     ~ princessakokosowa, 22 June 2023
 
             return cast(void *, cast(i64, true));
         } break;
@@ -102,7 +103,7 @@ core_function void *Heap_allocatorProcedure(AllocatorMode mode, AllocatorDescrip
 
             if (heap->commited < heap->occupied) {
                 isize size_to_commit         = heap->occupied - heap->commited;
-                isize aligned_size_to_commit = Allocator_align( size_to_commit, HEAP_DEFAULT_COMMIT_GRANULARITY);
+                isize aligned_size_to_commit = Allocator_align(size_to_commit, HEAP_DEFAULT_COMMIT_GRANULARITY);
 
                 Allocator_commit(heap->ptr + heap->commited, aligned_size_to_commit);
 
