@@ -1,0 +1,7 @@
+#include "basic_context_crack.c"
+#include "basic_types.c"
+#include "basic_allocator.c"
+#include "basic_arena.c"
+#include "basic_scratch.c"
+#include "basic_array.c"
+#include "basic_thread.c"

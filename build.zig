@@ -150,7 +150,7 @@ pub fn build(b: *std.Build) !void {
 
         exe.addIncludePath("src");
         exe.addCSourceFiles(&.{
-            "src/app.c",
+            "src/templates/template_basic.c",
         }, &.{
             // Warnings and errors.
             "-Wall",
